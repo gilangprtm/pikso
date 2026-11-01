@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+coverage/
+.env*
+!.env.example
+!.env.local.example
+storage/books/*
+storage/covers/*
+!storage/books/.gitkeep
+!storage/covers/.gitkeep
+*.log
+.DS_Store

@@ -1,0 +1,80 @@
+/* Pikso admin: opaque white surfaces, nude backgrounds and existing brown accents. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --font-heading: 'Manrope', sans-serif;
+}
+.school-admin {
+  --background: #f7f4ee;
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: #60483a;
+  --secondary-foreground: #ffffff;
+  /* Override the public muted text token only inside the admin workspace. */
+  --muted: #f5ede1;
+  --muted-foreground: #735e52;
+  --destructive: #b44d47;
+  --destructive-foreground: #ffffff;
+  --border: #e8e1d8;
+  --input: #ca9e73;
+  --ring: #ca9e73;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--ink);
+  --sidebar-border: #e8e1d8;
+  --sidebar-accent: #f5ede1;
+  --sidebar-accent-foreground: var(--ink);
+  font-family: var(--font-body);
+  letter-spacing: normal;
+  background: var(--background);
+  color: var(--foreground);
+}
+/* Structural surfaces remain opaque, independent of tint/hover utilities. */
+.school-admin .admin-panel { background:var(--sidebar); }
+.school-admin .admin-drawer[hidden],.school-admin .admin-backdrop[hidden] { display:none; }
+.school-admin .admin-backdrop { background:rgba(57,40,32,.42); }
+.school-admin .admin-guide { background:var(--primary);color:var(--primary-foreground); }
+.school-admin button { cursor: pointer; }
+.school-admin button:disabled { cursor: not-allowed; }
+.school-admin a:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.school-admin .book-editor { width:100%;max-width:48rem;display:grid;grid-template-columns:minmax(0,1fr);gap:20px;margin:0 auto;padding:24px;background:var(--card); }
+.school-admin .book-editor .span-2,.school-admin .book-editor .col-span-2,.school-admin .book-editor .admin-form-actions { grid-column:1/-1; }
+.school-admin .book-editor .admin-form-field { display:flex;min-width:0;flex-direction:column;gap:6px; }
+.school-admin .book-editor label { display:block;color:var(--foreground);font-size:14px;font-weight:500; }
+.school-admin .book-editor input,.school-admin .book-editor textarea,.school-admin .book-editor select { min-width:0;max-width:100%;font-size:16px; }
+.school-admin .book-editor input[type=file] { height:auto;min-height:44px;padding:10px;background:var(--paper); }
+.school-admin .book-editor select { min-height:40px;width:100%;padding:8px 10px;border:1px solid var(--input);border-radius:8px;background:var(--card);color:var(--foreground); }
+.school-admin .book-editor .admin-form-hint { color:var(--muted-foreground);font-size:12px;line-height:1.6; }
+.school-admin .book-editor .admin-message { min-height:0;font-size:13px;overflow-wrap:anywhere; }
+.school-admin .book-editor .admin-message:empty { display:none; }
+.school-admin .book-editor .admin-form-actions { display:flex;flex-direction:column-reverse;justify-content:flex-end;gap:12px;margin:0;padding:0;border:0; }
+.school-admin .book-editor .admin-form-actions>* { width:100%; }
+.school-admin .book-editor .admin-form-field img:not(.book-cover-preview) { object-fit:cover; }
+.school-admin .book-editor .admin-form-field img.book-cover-preview { display:block;max-width:min(100%,18rem);aspect-ratio:1/1;object-fit:contain; }
+@media(min-width:640px){
+  .school-admin .book-editor { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .school-admin .book-editor input,.school-admin .book-editor textarea,.school-admin .book-editor select { font-size:14px; }
+  .school-admin .book-editor .admin-form-actions { flex-direction:row; }
+  .school-admin .book-editor .admin-form-actions>* { width:auto; }
+}
+@media(prefers-reduced-motion:reduce){.school-admin *{transition:none!important;scroll-behavior:auto!important;}}

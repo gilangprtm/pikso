@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#fffaf3" />
+  <title>Nana — Small Steps, Big Adventures</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="m-0 bg-[#fffaf3] text-[#392421] antialiased">
+  <main class="relative isolate min-h-[740px] overflow-hidden lg:min-h-screen">
+    <img src="./hero-nana.png" alt="Nana and her bunny Mimi sitting in a sunny meadow, greeting a butterfly" class="absolute inset-0 -z-20 h-full w-full object-cover object-[65%_center] max-lg:object-[62%_center]" />
+    <div class="pointer-events-none absolute inset-0 -z-10 bg-linear-to-b from-[#fffaf3]/80 via-[#fffaf3]/10 to-transparent lg:hidden"></div>
+    <nav aria-label="Main navigation" class="relative z-10 mx-auto mt-5 flex w-fit max-w-[calc(100%-24px)] items-center gap-5 rounded-full border border-[#5a443e]/15 bg-white/65 px-6 py-4 shadow-sm backdrop-blur-md sm:gap-10 sm:px-9">
+      <a href="#home" aria-current="page" class="flex items-center gap-2 text-[10px] font-bold tracking-[.18em]"><span class="h-2 w-2 rounded-full bg-[#392421]"></span>HOME</a>
+      <a href="#work" class="text-[10px] font-semibold tracking-[.18em] hover:opacity-60">WORK</a>
+      <a href="#playground" class="text-[10px] font-semibold tracking-[.18em] hover:opacity-60">PLAYGROUND</a>
+      <a href="#about" class="text-[10px] font-semibold tracking-[.18em] hover:opacity-60">ABOUT</a>
+    </nav>
+    <section id="home" class="relative z-10 mx-auto flex min-h-[610px] max-w-[1680px] flex-col justify-between px-[5%] pb-9 pt-20 sm:pt-24 lg:min-h-[calc(100vh-90px)] lg:pt-[8vh]">
+      <div class="max-w-[780px]">
+        <p class="mb-5 text-[10px] font-semibold tracking-[.28em] sm:text-xs">CHARACTER <span class="mx-2">/</span> STORIES <span class="mx-2">/</span> WORLDS</p>
+        <h1 class="text-[clamp(3.4rem,6vw,7.3rem)] leading-[.93] font-black tracking-[-.065em]">Nana<span class="ml-2 text-[#fa7c79]">♥</span><br />Small steps.<br />Big adventures<span class="text-[#fa7c79]">.</span></h1>
+        <p class="mt-6 max-w-[410px] font-serif text-[clamp(1.1rem,1.65vw,1.8rem)] leading-[1.2] italic">We create heartwarming stories<br />for little dreamers.</p>
+        <div class="mt-7 flex flex-wrap items-center gap-5 sm:gap-8">
+          <a href="#work" class="inline-flex min-h-12 items-center gap-6 rounded-full bg-[#392421] px-7 text-[11px] font-bold tracking-[.2em] text-white transition hover:bg-[#60403a] focus-visible:outline-2 focus-visible:outline-offset-4">EXPLORE STUDIO <span aria-hidden="true" class="text-xl font-normal">→</span></a>
+          <a href="#playground" class="inline-flex min-h-12 items-center gap-3 text-[11px] font-bold tracking-[.2em] focus-visible:outline-2 focus-visible:outline-offset-4"><span class="grid h-12 w-12 place-items-center rounded-full border border-[#392421] text-lg" aria-hidden="true">▶</span>WATCH FILM</a>
+        </div>
+      </div>
+      <div class="mt-44 flex items-end gap-8 sm:mt-28">
+        <div class="flex flex-col gap-3 text-[11px] font-bold tracking-[.14em]"><span>01 ──</span><span class="opacity-65">02</span><span class="opacity-65">03</span></div>
+        <img src="./hero-nana.png" alt="" class="h-[100px] w-[110px] rounded-xl object-cover object-right shadow-sm" />
+        <p class="text-[10px] font-bold leading-[1.6] tracking-[.2em]">LITTLE<br />STORIES<br />BRIGHTER<br />TOMORROWS</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
