@@ -55,6 +55,20 @@ test("Coolify guide documents automatic ordered bootstrap, idempotency and crede
   assert.match(guide,/tidak.*deployment Coolify/i);
 });
 
+test("lockfile includes optional emnapi packages required by newer npm clean installs",()=>{
+  const {packages}=JSON.parse(readFileSync("package-lock.json","utf8"));
+  for(const name of ["core","runtime"]){
+    const root=packages[`node_modules/@emnapi/${name}`];
+    assert.equal(root.version,"1.11.3");
+    assert.equal(root.optional,true);
+    assert.match(root.integrity,/^sha512-/);
+    const bundled=packages[`node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/${name}`];
+    assert.equal(bundled.version,"1.11.1");
+    assert.equal(bundled.inBundle,true);
+    assert.equal(bundled.optional,true);
+  }
+});
+
 test("Next standalone tracing excludes secrets and private host storage",()=>{
   const source=readFileSync("next.config.ts","utf8");
   assert.match(source,/output:\s*["']standalone["']/);
