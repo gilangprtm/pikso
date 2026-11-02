@@ -6,6 +6,8 @@ export const bookInput = z.object({
   description: z.string().trim().max(1500),
   author: z.string().trim().max(100),
   categories: z.array(z.string().trim().min(1, "Nama kategori wajib diisi.").max(50, "Nama kategori maksimal 50 karakter.")).max(20, "Pilih maksimal 20 kategori."),
+  accessCode: z.string().max(128, "Kode akses maksimal 128 karakter.").default(""),
+  removeAccessCode: z.boolean().default(false),
   status: z.enum(["draft", "published"]),
 });
 export function parsePage(value: unknown) {

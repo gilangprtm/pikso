@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { Pool } from "pg";
 
 async function main() {
@@ -11,10 +12,10 @@ async function main() {
       await client.query("SELECT pg_advisory_xact_lock(817324001)");
       await client.query("CREATE TABLE IF NOT EXISTS schema_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())");
       const messages: string[] = [];
-      for (const id of ["001-initial", "002-book-categories"]) {
+      for (const id of ["001-initial", "002-book-categories", "003-book-access-codes"]) {
         const {rowCount}=await client.query("SELECT id FROM schema_migrations WHERE id=$1",[id]);
         if(!rowCount){
-          await client.query(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
+          await client.query(await readFile(path.join(process.cwd(),"db",`${id}.sql`),"utf8"));
           await client.query("INSERT INTO schema_migrations(id) VALUES($1)",[id]);
         }
         messages.push(rowCount ? `${id} already applied; no changes.` : `Applied ${id}`);

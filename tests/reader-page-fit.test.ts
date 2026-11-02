@@ -40,7 +40,7 @@ function readerTree(count: number, single: boolean, zoom: number) {
   const document = stage.props.children as Element;
   const zoomWrapper = document.props.children as Element;
   const book = zoomWrapper.props.children as Element;
-  return { zoomWrapper, book, width };
+  return { zoomWrapper, book, width, stage };
 }
 
 test("reader displays one PDF-sized page on desktop and mobile under one shared zoom", () => {
@@ -76,6 +76,29 @@ test("reader CSS cannot independently squeeze the canvas width or impose a mobil
   });
   assert.match(source, /className="reader-page" style=\{\{width,height\}\}/);
   assert.match(source, /pageNumber=\{number\} width=\{width\}/);
+});
+
+test("reader contains viewport overflow and enables scrollbar-free panning only when zoomed", () => {
+  const rules = new Map<string, Record<string,string>>();
+  postcss.parse(readFileSync("src/app/globals.css", "utf8")).walkRules(rule => {
+    if (rule.parent?.type !== "root") return;
+    const declarations:Record<string,string> = {};
+    rule.walkDecls(declaration => { declarations[declaration.prop] = declaration.value; });
+    rules.set(rule.selector, declarations);
+  });
+  assert.equal(rules.get(".reader-screen")?.height, "100dvh");
+  assert.equal(rules.get(".reader-screen")?.overflow, "hidden");
+  const stage = rules.get(".reader-stage")!;
+  assert.equal(stage.overflow, "hidden");
+  assert.equal(stage["min-width"], "0");
+  assert.equal(stage["min-height"], "0");
+  assert.equal(stage.flex, "1");
+  assert.equal(rules.get(".reader-stage.reader-zoomed")?.overflow, "auto");
+  assert.equal(rules.get(".reader-stage.reader-zoomed")?.["scrollbar-width"], "none");
+  assert.equal(rules.get(".reader-stage.reader-zoomed::-webkit-scrollbar")?.display, "none");
+  for (const count of [1, 15]) for (const zoom of [1, 1.25, 2]) {
+    assert.equal(String(readerTree(count, true, zoom).stage.props.className).includes("reader-zoomed"), zoom > 1);
+  }
 });
 
 test("reference page five is square and native PDF rendering has no added bottom paper strip", async () => {

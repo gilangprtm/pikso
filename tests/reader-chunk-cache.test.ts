@@ -74,6 +74,21 @@ test("changed or malformed range fails locally once; cancellation aborts in-flig
   const aborted=await createCachedPdfSource(fileUrl,{store:new MemoryStore(),fetcher:slow,signal:control.signal,onError:()=>assert.fail("abort is not an error"),onProgress:()=>{}});aborted.range.requestDataRange(0,10);await new Promise(resolve=>setImmediate(resolve));assert.ok(rangeSignal);control.abort();await new Promise(resolve=>setImmediate(resolve));assert.equal(rangeSignal.aborted,true);aborted.range.abort();
 });
 
+test("locked PDF HEAD and ranges never read or persist IndexedDB chunks",async()=>{
+  const {createCachedPdfSource}=loadCache();const store=new MemoryStore();let head=0,ranges=0;
+  const data=new Uint8Array(1000);
+  const fetcher:typeof fetch=async(_url,init)=>{
+    if(init?.method==="HEAD"){head++;return new Response(null,{headers:{"content-type":"application/pdf","content-length":"1000",etag:'"locked"',"x-pikso-pdf-cache":"memory-only"}});}
+    ranges++;const range=new Headers(init?.headers).get("range")!;const match=/bytes=(\d+)-(\d+)/.exec(range)!;const start=Number(match[1]),end=Number(match[2]);
+    return new Response(data.slice(start,end+1),{status:206,headers:{"content-type":"application/pdf","content-range":`bytes ${start}-${end}/1000`,etag:'"locked"',"x-pikso-pdf-cache":"memory-only"}});
+  };
+  for(let i=0;i<2;i++){
+    const source=await createCachedPdfSource(fileUrl,{signal:new AbortController().signal,store,fetcher,onError:()=>assert.fail("unexpected"),onProgress:()=>{}});
+    assert.deepEqual(await transportBytes(source,0,10),data.slice(0,10));source.range.abort();
+  }
+  assert.equal(head,2);assert.equal(ranges,2);assert.equal(store.reads,0);assert.equal(store.records.size,0);
+});
+
 test("native IndexedDB adapter degrades safely when storage is unavailable",async()=>{
   const {IndexedPdfChunkStore}=loadCache();const store=new IndexedPdfChunkStore();assert.equal(await store.get("none"),undefined);await store.prune(fileUrl,'"v"');await store.put({id:"x",url:fileUrl,etag:'"v"',start:0,usedAt:Date.now(),bytes:new ArrayBuffer(1)});
 });

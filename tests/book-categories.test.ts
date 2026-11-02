@@ -50,7 +50,7 @@ test("book category writes are atomic, reusable on the next book, editable, and 
   mock.method(pool,"query",query);
   mock.method(pool,"connect",async () => ({query,release() {}}));
   try {
-    for (const id of ["001-initial","002-book-categories"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
+    for (const id of ["001-initial","002-book-categories","003-book-access-codes"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
     const {writeBook} = await import("../src/lib/book-write");
     const {listBookCategories,getBookCategories} = await import("../src/lib/book-categories");
     const {getAdminBook,getPublicBook,listBooks} = await import("../src/lib/books");

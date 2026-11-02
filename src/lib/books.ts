@@ -1,12 +1,12 @@
 import { getDb } from "@/lib/db";
 import { normalizeAdminBookOptions, type AdminBookListOptions } from "@/lib/admin-books-query";
 // The legacy column remains for recovery only; all current reads use the relation.
-const bookSelection = `books.id, books.slug, books.title, books.description, books.author, books.status, books.pdf_path, books.cover_path, books.pdf_pages, books.created_at, books.updated_at, COALESCE((SELECT string_agg(c.name, ', ' ORDER BY c.name_key, c.id) FROM tr_book_category bc JOIN m_book_category c ON c.id = bc.book_category_id WHERE bc.book_id = books.id), '') AS category`;
+const bookSelection = `books.id, books.slug, books.title, books.description, books.author, books.status, books.pdf_path, books.cover_path, books.pdf_pages, books.created_at, books.updated_at, (books.access_code_hash IS NOT NULL) AS access_locked, COALESCE((SELECT string_agg(c.name, ', ' ORDER BY c.name_key, c.id) FROM tr_book_category bc JOIN m_book_category c ON c.id = bc.book_category_id WHERE bc.book_id = books.id), '') AS category`;
 
 export type Book = {
   id: string; slug: string; title: string; description: string; author: string;
   category: string; status: "draft" | "published"; pdf_path: string; cover_path: string;
-  pdf_pages: number; created_at: Date; updated_at: Date;
+  pdf_pages: number; created_at: Date; updated_at: Date; access_locked: boolean;
 };
 export const PAGE_SIZE = 12;
 export async function listBooks(page: number, admin = false, options: AdminBookListOptions = {}) {

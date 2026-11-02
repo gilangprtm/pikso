@@ -6,7 +6,7 @@ import { assets } from "@/lib/assets";
 export const metadata = { title: "Karakter" };
 
 export default function CharactersPage() {
-  return <main className="screen page-screen"><Nav/>
+  return <main className="screen page-screen content-inset-screen"><Nav/>
     <header className="page-heading"><div><span className="eyebrow">Teman dari dunia Pikso</span><h1>Kenalan, yuk!</h1></div><p>Setiap karakter punya cerita. Temukan teman kecil untuk petualangan penuh imajinasi.</p></header>
     <section className="character-grid" aria-label="Daftar karakter">
       <Link className="character-card" href="/characters/nana">

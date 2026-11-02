@@ -111,10 +111,10 @@ export async function createCachedPdfSource(fileUrl: string, settings: Settings)
   const length = Number(response.headers.get("content-length"));
   const etag = response.headers.get("etag");
   if (!response.ok || !response.headers.get("content-type")?.includes("application/pdf") || !Number.isSafeInteger(length) || length <= 0 || length > 50 * 1024 * 1024 || !etag || !/^"[^"\r\n]+"$/.test(etag)) throw new Error("PDF access or metadata unavailable");
+  const store = response.headers.get("x-pikso-pdf-cache")==="memory-only" ? undefined : settings.store ?? (browserStore ??= new IndexedPdfChunkStore());
   if (settings.signal.aborted) throw new Error("Aborted");
-  const store = settings.store ?? (browserStore ??= new IndexedPdfChunkStore());
   const resource = fileUrl.split("?")[0];
-  await store.prune(resource, etag).catch(() => {});
+  if(store)await store.prune(resource, etag).catch(() => {});
   if (settings.signal.aborted) throw new Error("Aborted");
   const controller = new AbortController();
   const pending = new Map<number, Promise<Uint8Array>>();
@@ -129,10 +129,10 @@ export async function createCachedPdfSource(fileUrl: string, settings: Settings)
     const task = (async () => {
       const end = Math.min(length, start + PDF_CHUNK_SIZE);
       const id = JSON.stringify([resource, etag, start]);
-      const cached = await store.get(id).catch(() => undefined);
+      const cached = await store?.get(id).catch(() => undefined);
       if (controller.signal.aborted) throw new Error("Aborted");
       if (cached && cached.url === resource && cached.etag === etag && cached.start === start && cached.bytes instanceof ArrayBuffer && cached.bytes.byteLength === end - start && cached.usedAt >= Date.now() - MAX_AGE_MS) {
-        void store.put({ ...cached, usedAt: Date.now() }).catch(() => {});
+        if(store)void store.put({ ...cached, usedAt: Date.now() }).catch(() => {});
         return new Uint8Array(cached.bytes);
       }
       const response = await fetcher(fileUrl, {
@@ -146,7 +146,7 @@ export async function createCachedPdfSource(fileUrl: string, settings: Settings)
       const bytes = await response.arrayBuffer();
       if (controller.signal.aborted || bytes.byteLength !== end - start) throw new Error("Incomplete PDF range");
       // Copy for IDB ownership: PDF.js may transfer the delivered buffer to its worker.
-      void store.put({ id, url: resource, etag, start, bytes: bytes.slice(0), usedAt: Date.now() }).catch(() => {});
+      if(store)void store.put({ id, url: resource, etag, start, bytes: bytes.slice(0), usedAt: Date.now() }).catch(() => {});
       return new Uint8Array(bytes);
     })();
     pending.set(start, task);

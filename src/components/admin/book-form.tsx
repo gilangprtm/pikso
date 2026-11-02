@@ -17,12 +17,12 @@ const publicationStatuses = [
   { value: "draft", label: "Draft — hanya admin" },
   { value: "published", label: "Terbit — dapat dibaca publik" },
 ];
-type Values = { title: string; slug: string; description: string; author: string; categories: string[]; status: "draft" | "published" };
-export function BookForm({ mode, id, initial, categories = [] }: { mode: "create" | "edit"; id?: string; initial?: Values; categories?: string[] }) {
+type Values = { title: string; slug: string; description: string; author: string; categories: string[]; accessCode?: string; removeAccessCode?: boolean; status: "draft" | "published" };
+export function BookForm({ mode, id, initial, categories = [], accessLocked = false }: { mode: "create" | "edit"; id?: string; initial?: Values; categories?: string[]; accessLocked?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = adminBookReturnHref(searchParams?.get("returnTo"));
-  const [values,setValues] = useState<Values>(initial ?? { title:"",slug:"",description:"",author:"",categories:[],status:"draft" });
+  const [values,setValues] = useState<Values>(initial ?? { title:"",slug:"",description:"",author:"",categories:[],accessCode:"",status:"draft" });
   const [error,setError] = useState("");
   const [busy,setBusy] = useState(false);
   const [uploadProgress,setUploadProgress] = useState<PdfUploadProgress | null>(null);
@@ -84,6 +84,7 @@ export function BookForm({ mode, id, initial, categories = [] }: { mode: "create
     <TextField id="author" label="Penulis" value={values.author} maxLength={100} onChange={value=>update("author",value)}/>
     <CategoryCombobox key={id ?? "new-book"} options={categories} value={values.categories} onChange={updateCategories} disabled={busy}/>
     <div className="span-2"><TextareaField label="Tentang cerita" value={values.description} maxLength={1500} rows={3} onChange={value=>update("description",value)}/></div>
+    <Field className="admin-form-field"><FieldLabel htmlFor="accessCode">Kode akses <span className="font-normal text-muted-foreground">(opsional)</span></FieldLabel><Input id="accessCode" name="accessCode" type="text" autoComplete="off" maxLength={128} value={values.accessCode ?? ""} placeholder={mode === "edit" && accessLocked ? "Kosongkan untuk mempertahankan kode" : "Kosongkan agar cerita terbuka"} disabled={busy} onChange={event=>setValues(current=>({...current,accessCode:event.target.value,removeAccessCode:false}))}/><FieldDescription>Kode bersifat sensitif dan tidak ditampilkan kembali. Pada edit, biarkan kosong untuk mempertahankan kode saat ini.</FieldDescription>{mode === "edit" && accessLocked && <Button type="button" variant="outline" className="w-fit" disabled={busy} onClick={()=>setValues(current=>({...current,accessCode:"",removeAccessCode:true}))}>{values.removeAccessCode ? "Kode akan dihapus saat disimpan" : "Hapus kode akses"}</Button>}</Field>
     <Field className="admin-form-field"><FieldLabel htmlFor="status">Status publikasi</FieldLabel><Select name="status" items={publicationStatuses} value={values.status} onValueChange={value=>{if(value)update("status",value);}}><SelectTrigger id="status" className="w-full justify-between border-input bg-card px-2.5 py-2 text-base whitespace-normal data-[size=default]:h-10 sm:text-sm [&_[data-slot=select-value]]:min-w-0"><SelectValue/></SelectTrigger><SelectContent align="start" alignItemWithTrigger={false}>{publicationStatuses.map(status=><SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>)}</SelectContent></Select></Field>
     {mode === "edit" && id && <Field className="admin-form-field"><FieldTitle>Sampul saat ini</FieldTitle><img src={`/api/admin/books/${id}/cover`} alt="Sampul buku" className="book-cover-preview aspect-square w-full max-w-72 rounded-md bg-white object-contain"/><FieldDescription className="admin-form-hint">Buku baru memakai sampul otomatis dari halaman pertama PDF.</FieldDescription></Field>}
     {error&&<Alert variant="destructive" className="col-span-2"><AlertDescription>{error}</AlertDescription></Alert>}

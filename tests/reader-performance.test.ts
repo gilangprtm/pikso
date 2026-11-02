@@ -50,7 +50,7 @@ test("PDF file handler serves bounded byte ranges, HEAD, validators and preserve
     response=await serveFile(request({"if-none-match":etag}),"books","book.pdf");assert.equal(response.status,200);assert.equal(response.headers.get("cache-control"),"private, no-store");await response.body?.cancel();
     const dbRows=new Map([["published",{status:"published",pdf_path:"book.pdf"}],["draft",{status:"draft",pdf_path:"book.pdf"}]]);
     assert.match(readFileSync("src/lib/books.ts","utf8"),/WHERE slug = \$1 AND status = 'published'/);
-    const routeOverrides:Record<string,unknown>={"@/lib/books":{getPublicBook:async(slug:string)=>dbRows.get(slug)?.status==="published"?dbRows.get(slug):null},"@/lib/serve-file":{serveFile:async(_request:Request,_kind:string,_filename:string,options:unknown)=>({status:200,options})}};
+    const routeOverrides:Record<string,unknown>={"@/lib/book-access":{canReadBook:async()=>true},"@/lib/books":{getPublicBook:async(slug:string)=>dbRows.get(slug)?.status==="published"?dbRows.get(slug):null},"@/lib/serve-file":{serveFile:async(_request:Request,_kind:string,_filename:string,options:unknown)=>({status:200,options})}};
     const routeSource=readFileSync("src/app/api/books/[slug]/file/route.ts","utf8");
     const routeJs=ts.transpileModule(routeSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
     const routeExports:Record<string,(request:Request,context:{params:Promise<{slug:string}>})=>Promise<{status:number;options?:unknown}>>={};

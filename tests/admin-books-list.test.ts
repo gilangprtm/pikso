@@ -12,7 +12,7 @@ test("server book table paginates and sorts the whole catalog, filters safely an
     const result=await db.query(sql,[...values]);return {...result,rowCount:result.rows.length};
   });
   try {
-    for(const id of ["001-initial","002-book-categories"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
+    for(const id of ["001-initial","002-book-categories","003-book-access-codes"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
     for(let i=1;i<=32;i++) await db.query("INSERT INTO books(slug,title,author,status,pdf_path,cover_path,pdf_pages,created_at) VALUES($1,$2,$3,$4,'file.pdf','cover.webp',$5,'2026-01-01')",[`book-${i}`,`Buku ${String(i).padStart(2,"0")}`,i===2?"Penulis Khusus":"Studio",i%2?"published":"draft",i]);
     await db.query("INSERT INTO m_book_category(name) VALUES('Fantasi')");
     await db.query("INSERT INTO tr_book_category(book_id,book_category_id) SELECT b.id,c.id FROM books b,m_book_category c WHERE b.slug='book-30'");

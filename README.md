@@ -44,6 +44,10 @@ npm run dev
 
 Build lokal: `npm run build`; pemeriksaan: `npm run lint`, `npm run typecheck`, `npm test`.
 
+## Docker / Coolify
+
+`Dockerfile` multi-stage memakai Node.js 24 Debian, Next.js standalone, dan user non-root. Panduan environment runtime, volume wajib `/app/storage`, healthcheck, serta bootstrap migration/seed otomatis tersedia di [docs/coolify-docker.md](docs/coolify-docker.md). Build tidak mengakses database; startup container otomatis menjalankan migration lalu seed admin sebelum web server. Seed berulang tidak mengganti password admin existing. Kredensial bootstrap sementara tetap lemah; siapkan kredensial aman sebelum akses publik.
+
 ## Komponen UI
 
 Seluruh 64 komponen berkas pada registry resmi shadcn Base Nova tersedia di `src/components/ui/`, termasuk dialog, drawer, combobox, calendar, chart, sidebar, toast, dan Sonner. Entri registry `form` tidak menyediakan berkas tersendiri; gunakan komponen `Field` bersama elemen form dan validasi aplikasi.

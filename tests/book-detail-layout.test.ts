@@ -9,7 +9,7 @@ import postcss from "postcss";
 
 test("detail page keeps separate cover and normal-flow book copy, back/read links and missing-book guard",async()=>{
   const queries:string[]=[];
-  const book={slug:"nana-awan",title:"Nana <awan> & teman",category:"Petualangan",author:"Pikso",description:"Petualangan di kerajaan awan.",pdf_pages:15};
+  const book={slug:"nana-dan-hutan-seribu-keajaiban",title:"Nana <awan> & teman",category:"Petualangan",author:"Pikso",description:"Petualangan di kerajaan awan.",pdf_pages:15};
   const icon=()=>createElement("svg",{"aria-hidden":true});
   const modules:Record<string,unknown>={
     "react/jsx-runtime":runtime,
@@ -17,6 +17,8 @@ test("detail page keeps separate cover and normal-flow book copy, back/read link
     "next/navigation":{notFound:()=>{throw new Error("test-not-found");}},
     "lucide-react":{ArrowLeft:icon,ArrowRight:icon,BookOpen:icon,Clock3:icon},
     "@/components/nav":{Nav:()=>createElement("nav",null,"Navigasi")},
+    "@/components/books/start-reading":{StartReading:({slug}:{slug:string})=>createElement("a",{href:`/books/${slug}/read`},"MULAI MEMBACA")},
+
     "@/lib/books":{getPublicBook:async(slug:string)=>{queries.push(slug);return slug==="missing"?null:book;}},
   };
   const source=readFileSync("src/app/books/[slug]/page.tsx","utf8");
@@ -25,10 +27,14 @@ test("detail page keeps separate cover and normal-flow book copy, back/read link
   new Function("require","exports",js)((name:string)=>modules[name],exports);
   const html=renderToStaticMarkup(await exports.default!({params:Promise.resolve({slug:book.slug})}));
   assert.deepEqual(queries,[book.slug]);
-  assert.match(html,/<div class="book-detail-cover"><img[^>]*src="\/api\/books\/nana-awan\/cover"[^>]*\/><\/div><div class="book-detail-copy">/);
+  assert.match(html,/<main class="screen book-detail-screen book-detail-catalog-background">/);
+  assert.match(html,/<div class="book-detail-cover"><img[^>]*src="\/api\/books\/nana-dan-hutan-seribu-keajaiban\/cover"[^>]*\/><\/div><div class="book-detail-copy">/);
   assert.match(html,/<h1>Nana &lt;awan&gt; &amp; teman<\/h1>/);
-  assert.match(html,/href="\/books"/);assert.match(html,/href="\/books\/nana-awan\/read"/);
+  assert.match(html,/href="\/books"/);assert.match(html,/href="\/books\/nana-dan-hutan-seribu-keajaiban\/read"/);
   for(const text of ["Petualangan","Pikso","15","MULAI MEMBACA"])assert.ok(html.includes(text));
+  book.slug="nana-awan";
+  const other=renderToStaticMarkup(await exports.default!({params:Promise.resolve({slug:book.slug})}));
+  assert.doesNotMatch(other,/book-detail-catalog-background/);
   await assert.rejects(exports.default!({params:Promise.resolve({slug:"missing"})}),/test-not-found/);
 });
 
@@ -43,6 +49,10 @@ test("detail mobile styles give cover a bounded square owner, isolate image sizi
       r.walkDecls(d=>{result[d.prop]=d.value;});
     });return result;
   }
+  const background=rule(".page-screen::before").background;
+  assert.match(background,/books-background\.png/);
+  assert.equal(rule(".book-detail-screen.book-detail-catalog-background").background,background);
+  assert.match(rule(".book-detail-screen").background,/radial-gradient/);
   const mobile="(max-width:600px)";
   const screen=rule(".book-detail-screen",mobile);
   assert.equal(screen.display,"block");assert.equal(screen["overflow-y"],"auto");

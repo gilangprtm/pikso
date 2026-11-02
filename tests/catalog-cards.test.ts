@@ -32,6 +32,7 @@ test("catalog keeps published server pagination and passes only public story ide
   const {html,queries,carouselProps}=await catalog("populated");
   assert.deepEqual(queries,[[2]]);
   assert.deepEqual(carouselProps,{books:Array.from({length:12},(_,i)=>({id:`book-${i}`,slug:`story-${i}`,title:i===0?'Nana <awan> & "teman"':"Judul cerita yang cukup panjang untuk beberapa baris"}))});
+  assert.match(html,/<main class="screen page-screen catalog-screen content-inset-screen">/);
   assert.match(html,/data-testid="catalog-carousel"/);
   assert.match(html,/data-current="2" data-pages="3" data-base="\/books"/);
   assert.match(readFileSync("src/components/pagination.tsx","utf8"),/aria-label="Halaman sebelumnya"[\s\S]*aria-label="Halaman berikutnya"/);

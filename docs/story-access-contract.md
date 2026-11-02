@@ -1,0 +1,11 @@
+# PIKSO-STORY-ACCESS/r1
+
+- Full contract, direct_native, native_pi; baseline fd1634db8321e8bb02e9b11c2ab83628cdd95f68.
+- Objective: optional string access code on create/edit; prompt on Start Reading; remember verified access without application expiry; public stories unchanged.
+- Included: additive books migration, metadata writes/validation/admin form, shared server access verifier, access API, Base UI dialog, reader/file authorization, protected PDF cache policy, tests/docs. Excluded active DB migration without separate authorization, status/content mutations, env/credentials/dependencies, push/commit, unrelated UI/refactors.
+- Architecture DESIGN_BOUNDED: existing table is books, not m_books. Reuse bookInput/writeBook, existing auth secret, Better Auth password hashing, Base UI Dialog/Input/Button, existing PDF Range server. Alternatives rejected: client-only lock (bypassable); persistent cookie alone (browser cookie age caps do not provide lifetime).
+- Selected: salted access_code_hash plus access_version UUID. Non-expiring signed per-book/version bearer proof in localStorage; session HttpOnly SameSite cookie for direct requests, restored from proof using same-origin POST when needed. No raw code saved, token never in URL. LocalStorage deletion/private browsing/device changes may require code again; application has no expiry. Secret rotation also revokes proofs.
+- Code edit blank preserves existing code; explicit remove opens story; setting/replacing rotates version atomically. Existing stories default open. Public reads expose boolean only, never hash or proof.
+- Server authorizes both reader page and PDF GET/HEAD before file validators/ranges. Protected PDFs use no-store and memory-only transport (no new IndexedDB writes), including fresh HEAD before reuse. Existing downloaded bytes cannot be remotely revoked (not DRM).
+- Verification: isolated PostgreSQL/PGlite migrations, create/edit/remove/revoke, incorrect/malformed/cross-story/forged proof, denied HEAD/range/304, public/admin regression, modal direct-callback checks (not browser simulation), full test/lint/typecheck/build, final diff self_review.
+- Next boundary: apply migration 003 to active database only with Owner permission, then standing-authorized activation after verified checks/listener. No auto-push authorization for this feature.
