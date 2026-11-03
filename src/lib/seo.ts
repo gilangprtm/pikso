@@ -18,20 +18,20 @@ export function getPublicSiteUrl(): URL | null {
 
 export const publicPageMetadata = {
   home: {
-    title: "Pikso Studio — Cerita Bergambar Anak",
-    description: "Jelajahi cerita bergambar anak yang hangat, karakter sahabat, dan petualangan imajinatif dari Pikso Studio.",
+    title: "Pikso – Buku Cerita Digital Anak",
+    description: "Jelajahi cerita bergambar anak yang hangat, karakter sahabat, dan petualangan imajinatif di Pikso.",
   },
   books: {
     title: "Koleksi Cerita Bergambar Anak",
-    description: "Jelajahi koleksi cerita bergambar Pikso Studio: petualangan hangat, persahabatan, dan dunia imajinasi untuk anak.",
+    description: "Jelajahi koleksi cerita bergambar Pikso: petualangan hangat, persahabatan, dan dunia imajinasi untuk anak.",
   },
   characters: {
     title: "Karakter Cerita Anak",
-    description: "Kenali Nana dan teman-teman dari dunia cerita Pikso Studio. Temukan karakter dan kisah mereka.",
+    description: "Kenali Nana dan teman-teman dari dunia cerita Pikso. Temukan karakter dan kisah mereka.",
   },
   about: {
-    title: "Tentang Pikso Studio",
-    description: "Pikso Studio menghadirkan cerita bergambar hangat yang mengajak anak menjelajahi imajinasi, persahabatan, dan keberanian.",
+    title: "Tentang Pikso",
+    description: "Pikso menghadirkan cerita bergambar hangat yang mengajak anak menjelajahi imajinasi, persahabatan, dan keberanian.",
   },
   nana: {
     title: "Nana — Karakter Petualang Kecil",
@@ -49,7 +49,7 @@ export function canonicalUrl(path: string): string | undefined {
 export function pageMetadata(path: string, title: string, description: string, imagePath = "/assets/brand/pikso-social.png"): Metadata {
   const canonical = canonicalUrl(path);
   const image = canonicalUrl(imagePath);
-  const brandedTitle = title === publicPageMetadata.home.title ? title : `${title} · Pikso Studio`;
+  const brandedTitle = title === publicPageMetadata.home.title ? title : `${title} | Pikso`;
   return {
     title: { absolute: brandedTitle },
     description,
@@ -57,9 +57,9 @@ export function pageMetadata(path: string, title: string, description: string, i
     ...(canonical && image ? {
       alternates: { canonical },
       openGraph: {
-        type: "website", locale: "id_ID", siteName: "Pikso Studio",
+        type: "website", locale: "id_ID", siteName: "Pikso",
         title: brandedTitle, description, url: canonical,
-        images: [{ url: image, alt: imagePath.startsWith("/api/") ? `Sampul ${title}` : "Pikso Studio — Cerita kecil, imajinasi besar" }],
+        images: [{ url: image, alt: imagePath.startsWith("/api/") ? `Sampul ${title}` : "Pikso — Buku cerita digital anak" }],
       },
       twitter: { card: "summary_large_image", title: brandedTitle, description, images: [{ url: image, alt: title }] },
     } : {}),
@@ -70,7 +70,7 @@ export function rootMetadata(): Metadata {
   const site = getPublicSiteUrl();
   return {
     ...(site ? { metadataBase: site } : {}),
-    title: { default: publicPageMetadata.home.title, template: "%s · Pikso Studio" },
+    title: { default: publicPageMetadata.home.title, template: "%s | Pikso" },
     description: publicPageMetadata.home.description,
     applicationName: "Pikso",
     creator: "Pikso Studio",
@@ -86,8 +86,8 @@ export function siteStructuredData(): string | null {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Organization", "@id": `${url}#organization`, name: "Pikso Studio", url, logo: new URL("/icon.png", site).toString() },
-      { "@type": "WebSite", "@id": `${url}#website`, name: "Pikso Studio", alternateName: "Pikso", url, description: publicPageMetadata.home.description, inLanguage: "id-ID", publisher: { "@id": `${url}#organization` } },
+      { "@type": "Organization", "@id": `${url}#organization`, name: "Pikso", url, logo: new URL("/icon.png", site).toString() },
+      { "@type": "WebSite", "@id": `${url}#website`, name: "Pikso", alternateName: "Pikso Studio", url, description: publicPageMetadata.home.description, inLanguage: "id-ID", publisher: { "@id": `${url}#organization` } },
     ],
   }).replace(/</g, "\\u003c");
 }
