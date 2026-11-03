@@ -48,6 +48,10 @@ Build lokal: `npm run build`; pemeriksaan: `npm run lint`, `npm run typecheck`, 
 
 `Dockerfile` multi-stage memakai Node.js 24 Debian, Next.js standalone, dan user non-root. Panduan environment runtime, volume wajib `/app/storage`, healthcheck, serta bootstrap migration/seed otomatis tersedia di [docs/coolify-docker.md](docs/coolify-docker.md). Build tidak mengakses database; startup container otomatis menjalankan migration lalu seed admin sebelum web server. Seed berulang tidak mengganti password admin existing. Kredensial bootstrap sementara tetap lemah; siapkan kredensial aman sebelum akses publik.
 
+## SEO dan identitas browser
+
+Metadata halaman publik, canonical, Open Graph/Twitter, JSON-LD, `/robots.txt`, `/sitemap.xml`, dan favicon Pikso tersedia. Atur `SITE_URL` ke origin HTTPS resmi serta `SITE_INDEXING=on` **saat runtime** untuk mengaktifkan indexing; tanpa domain valid atau dengan `SITE_INDEXING=off`, indexing dinonaktifkan. Domain tidak ditebak dari request atau URL autentikasi. Ikuti [docs/seo.md](docs/seo.md) untuk konfigurasi dan pemeriksaan Search Console. Tidak ada jaminan peringkat/kecepatan indexing Google.
+
 ## Komponen UI
 
 Seluruh 64 komponen berkas pada registry resmi shadcn Base Nova tersedia di `src/components/ui/`, termasuk dialog, drawer, combobox, calendar, chart, sidebar, toast, dan Sonner. Entri registry `form` tidak menyediakan berkas tersendiri; gunakan komponen `Field` bersama elemen form dan validasi aplikasi.

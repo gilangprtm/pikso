@@ -2,7 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Nav } from "@/components/nav";
 
-export const metadata = { title: "Tentang Pikso Studio" };
+import { pageMetadata, publicPageMetadata } from "@/lib/seo";
+
+export function generateMetadata() { return pageMetadata("/about", publicPageMetadata.about.title, publicPageMetadata.about.description); }
 
 export default function AboutPage() {
   return <main className="screen about-screen studio-screen content-inset-screen"><Nav/>

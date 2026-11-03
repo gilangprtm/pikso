@@ -4,10 +4,12 @@ import { ArrowLeft, BookOpen, Clock3 } from "lucide-react";
 import { getPublicBook } from "@/lib/books";
 import { Nav } from "@/components/nav";
 import { StartReading } from "@/components/books/start-reading";
+import { pageMetadata } from "@/lib/seo";
 export const dynamic="force-dynamic";
 export async function generateMetadata({params}:{params:Promise<{slug:string}>}) {
   const book=await getPublicBook((await params).slug);
-  return book?{title:book.title,description:book.description||`Baca ${book.title}, cerita bergambar bersama Nana.`}:{title:"Cerita tidak ditemukan"};
+  if (!book) return { title: "Cerita tidak ditemukan", robots: { index: false, follow: false } };
+  return pageMetadata(`/books/${book.slug}`, book.title, book.description || `Jelajahi ${book.title}, cerita bergambar anak dari Pikso Studio.`, `/api/books/${book.slug}/cover`);
 }
 export default async function BookDetail({params}:{params:Promise<{slug:string}>}) {
   const book=await getPublicBook((await params).slug);if(!book)notFound();

@@ -3,7 +3,9 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Nav } from "@/components/nav";
 import { assets } from "@/lib/assets";
 
-export const metadata = { title: "Kenalan dengan Nana" };
+import { pageMetadata, publicPageMetadata } from "@/lib/seo";
+
+export function generateMetadata() { return pageMetadata("/characters/nana", publicPageMetadata.nana.title, publicPageMetadata.nana.description); }
 
 export default function NanaPage() {
   return <main className="screen about-screen"><Nav/>

@@ -40,6 +40,12 @@ export async function getPublicBook(slug: string) {
   const result = await getDb().query<Book>(`SELECT ${bookSelection} FROM books WHERE slug = $1 AND status = 'published'`, [slug]);
   return result.rows[0] ?? null;
 }
+// Sitemap needs every published identity, not a paginated catalog or private paths.
+export async function listPublishedBookUrls() {
+  return (await getDb().query<Pick<Book, "slug" | "updated_at">>(
+    "SELECT slug, updated_at FROM books WHERE status = 'published' ORDER BY slug",
+  )).rows;
+}
 export async function getAdminBook(id: string) {
   const result = await getDb().query<Book>(`SELECT ${bookSelection} FROM books WHERE id = $1`, [id]);
   return result.rows[0] ?? null;

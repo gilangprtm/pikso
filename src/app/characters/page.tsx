@@ -3,7 +3,9 @@ import { ArrowRight } from "lucide-react";
 import { Nav } from "@/components/nav";
 import { assets } from "@/lib/assets";
 
-export const metadata = { title: "Karakter" };
+import { pageMetadata, publicPageMetadata } from "@/lib/seo";
+
+export function generateMetadata() { return pageMetadata("/characters", publicPageMetadata.characters.title, publicPageMetadata.characters.description); }
 
 export default function CharactersPage() {
   return <main className="screen page-screen content-inset-screen"><Nav/>

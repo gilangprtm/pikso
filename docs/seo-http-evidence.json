@@ -1,0 +1,411 @@
+{
+  "activation": {
+    "build": "PnQhPEkjOpXGuUnzKKFdZ",
+    "before": [
+      {
+        "pid": 107034,
+        "cwd": "/mnt/storage/projects/nana-website",
+        "cmd": "next-server (v16.4.3)",
+        "sockets": [
+          {
+            "inode": "181168454",
+            "address": "00000000:0BB8"
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "pid": 108493,
+        "cwd": "/mnt/storage/projects/nana-website",
+        "cmd": "next-server (v16.4.3)",
+        "sockets": [
+          {
+            "inode": "181225501",
+            "address": "00000000:0BB8"
+          }
+        ]
+      }
+    ],
+    "worker_bytes": 1317034,
+    "worker_sha256": "a33cfe728c584fdba4fcc1fd54bcdc2f9f2f13889ddbb5b2bd1d0f8cbe49b84e"
+  },
+  "http": {
+    "build_id": "PnQhPEkjOpXGuUnzKKFdZ",
+    "no_domain": [
+      {
+        "path": "/",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 13603,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/books",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 16215,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/books?page=999",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 16233,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/characters",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 12769,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/characters/nana",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 14276,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/about",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 12644,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/admin/login",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 19488,
+        "robots": "noindex, nofollow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/robots.txt",
+        "status": 200,
+        "type": "text/plain",
+        "bytes": 27,
+        "body": "User-Agent: *\nDisallow: /\n\n"
+      },
+      {
+        "path": "/sitemap.xml",
+        "status": 200,
+        "type": "application/xml",
+        "bytes": 110,
+        "urls": []
+      },
+      {
+        "path": "/favicon.ico",
+        "status": 200,
+        "type": "image/x-icon",
+        "bytes": 2823,
+        "dimensions": [
+          48,
+          48
+        ]
+      },
+      {
+        "path": "/icon.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 882188,
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      {
+        "path": "/apple-icon.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 27206,
+        "dimensions": [
+          180,
+          180
+        ]
+      },
+      {
+        "path": "/assets/brand/pikso-social.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 136338,
+        "dimensions": [
+          1200,
+          630
+        ]
+      }
+    ],
+    "configured_example_domain": [
+      {
+        "path": "/",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 17817,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org"
+        ],
+        "og_url": "https://stories.example.org",
+        "og_image": "https://stories.example.org/assets/brand/pikso-social.png",
+        "schema_count": 1,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/books",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 18975,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org/books"
+        ],
+        "og_url": "https://stories.example.org/books",
+        "og_image": "https://stories.example.org/assets/brand/pikso-social.png",
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/books?page=999",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 18993,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org/books"
+        ],
+        "og_url": "https://stories.example.org/books",
+        "og_image": "https://stories.example.org/assets/brand/pikso-social.png",
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/characters",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 15419,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org/characters"
+        ],
+        "og_url": "https://stories.example.org/characters",
+        "og_image": "https://stories.example.org/assets/brand/pikso-social.png",
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/characters/nana",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 17140,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org/characters/nana"
+        ],
+        "og_url": "https://stories.example.org/characters/nana",
+        "og_image": "https://stories.example.org/assets/brand/pikso-social.png",
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/about",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 15382,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org/about"
+        ],
+        "og_url": "https://stories.example.org/about",
+        "og_image": "https://stories.example.org/assets/brand/pikso-social.png",
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/admin/login",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 19488,
+        "robots": "noindex, nofollow",
+        "canonical": [],
+        "og_url": null,
+        "og_image": null,
+        "schema_count": 0,
+        "icons": [
+          "/favicon.ico?favicon.0c3tuagyudeqf.ico",
+          "/icon.png?icon.12qe8mtz8p57e.png",
+          "/apple-icon.png?apple-icon.0a1_pjon646di.png"
+        ]
+      },
+      {
+        "path": "/robots.txt",
+        "status": 200,
+        "type": "text/plain",
+        "bytes": 158,
+        "body": "User-Agent: *\nAllow: /\nAllow: /api/books/*/cover\nDisallow: /admin\nDisallow: /api/\n\nHost: stories.example.org\nSitemap: https://stories.example.org/sitemap.xml\n"
+      },
+      {
+        "path": "/sitemap.xml",
+        "status": 200,
+        "type": "application/xml",
+        "bytes": 1265,
+        "urls": [
+          "https://stories.example.org/",
+          "https://stories.example.org/books",
+          "https://stories.example.org/characters",
+          "https://stories.example.org/characters/nana",
+          "https://stories.example.org/about",
+          "https://stories.example.org/books/nana-dan-bintang-yang-jatuh",
+          "https://stories.example.org/books/nana-dan-hutan-seribu-keajaiban",
+          "https://stories.example.org/books/nana-dan-kerajaan-di-atas-awan"
+        ]
+      },
+      {
+        "path": "/favicon.ico",
+        "status": 200,
+        "type": "image/x-icon",
+        "bytes": 2823,
+        "dimensions": [
+          48,
+          48
+        ]
+      },
+      {
+        "path": "/icon.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 882188,
+        "dimensions": [
+          1254,
+          1254
+        ]
+      },
+      {
+        "path": "/apple-icon.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 27206,
+        "dimensions": [
+          180,
+          180
+        ]
+      },
+      {
+        "path": "/assets/brand/pikso-social.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 136338,
+        "dimensions": [
+          1200,
+          630
+        ]
+      },
+      {
+        "path": "/books/nana-dan-bintang-yang-jatuh",
+        "status": 200,
+        "robots": "index, follow",
+        "canonical": [
+          "https://stories.example.org/books/nana-dan-bintang-yang-jatuh"
+        ],
+        "og_image": "https://stories.example.org/api/books/nana-dan-bintang-yang-jatuh/cover",
+        "twitter_card": "summary_large_image"
+      },
+      {
+        "path": "/books/nana-dan-bintang-yang-jatuh/read",
+        "status": 200,
+        "robots": "noindex, follow",
+        "canonical": [],
+        "og_image": null,
+        "twitter_card": null
+      }
+    ]
+  }
+}

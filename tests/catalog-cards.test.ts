@@ -13,6 +13,7 @@ async function catalog(mode: "populated" | "empty" | "unavailable") {
   const books=Array.from({length:12},(_,i)=>({id:`book-${i}`,slug:`story-${i}`,title:i===0?'Nana <awan> & "teman"':"Judul cerita yang cukup panjang untuk beberapa baris",category:"Petualangan",author:"Pikso",pdf_pages:15}));
   const modules: Record<string,unknown> = {
     "react/jsx-runtime":{Fragment,jsx,jsxs},
+    "react":{cache:(fn:unknown)=>fn},
     "next/link":{default:({children,...props}:{children:ReactNode})=>createElement("a",props,children)},
     "@/components/nav":{Nav:()=>createElement("nav",null,"Navigasi")},
     "@/components/pagination":{Pagination:({current,pages,base}:{current:number;pages:number;base:string})=>createElement("nav",{"aria-label":"Pagination", "data-current":current,"data-pages":pages,"data-base":base})},

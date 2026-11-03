@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { rootMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: { default: "Pikso — Cerita kecil, imajinasi besar", template: "%s · Pikso" },
-  description: "Jelajahi cerita bergambar dan karakter dari Pikso Studio. Temukan Nana dan teman-teman baru dalam pengalaman buku digital yang menyenangkan.",
-};
+// Coolify injects the public origin at runtime, never as a secret build argument.
+export const dynamic = "force-dynamic";
+export function generateMetadata(): Metadata { return rootMetadata(); }
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#fffaf3" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="id"><body><TooltipProvider>{children}</TooltipProvider></body></html>;

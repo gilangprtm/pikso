@@ -14,12 +14,16 @@
 | `BETTER_AUTH_URL` | Origin HTTPS publik sebenarnya, misalnya `https://pikso.example.com` |
 | `BETTER_AUTH_SECRET` | Secret acak minimal 32 karakter; pertahankan nilainya antar-redeploy |
 | `STORAGE_DIR` | `/app/storage` |
+| `SITE_URL` | `https://pikso.my.id` (HTTPS resmi Pikso untuk canonical/sitemap) |
+| `SITE_INDEXING` | `on` untuk situs publik siap diindeks, `off` untuk staging/development |
 
 `PORT=3000`, `HOSTNAME=0.0.0.0`, `NODE_ENV=production` sudah diset dalam image. Jangan gunakan `localhost` untuk hostname database kecuali DB benar-benar berada dalam container yang sama (tidak dianjurkan). Gunakan alamat internal service PostgreSQL/network Coolify; URL-encode karakter khusus pada password. Ikuti kebutuhan TLS provider database.
 
 Generate secret sendiri pada terminal tepercaya: `openssl rand -hex 32`. Jangan kirim nilainya ke chat atau Git. Mengganti secret dapat membatalkan sesi admin dan bukti akses cerita yang tersimpan.
 
 Tidak ada credential produksi yang dibutuhkan saat build. `.dockerignore` mengecualikan `.env*` nyata, Git, `storage`, dependency lokal dan output build lokal. File contoh environment bukan rahasia. Jangan menyisipkan secrets melalui build arguments atau menonaktifkan ignore ini.
+
+SEO membaca `SITE_URL` dan `SITE_INDEXING` saat runtime, tidak perlu build arguments. Tanpa `SITE_URL` valid atau dengan `SITE_INDEXING=off`, halaman memakai `noindex`, robots menolak crawl, dan sitemap kosong. Konfigurasi ini terpisah dari URL autentikasi. Panduan indexing, favicon dan Search Console: [seo.md](seo.md).
 
 ## Persistent storage (wajib)
 

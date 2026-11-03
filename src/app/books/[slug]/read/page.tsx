@@ -6,7 +6,7 @@ import { ReaderLoader } from "@/components/reader/reader-loader";
 import { accessCookieName, canReadBook } from "@/lib/book-access";
 import { UnlockRequired } from "@/components/books/unlock-required";
 export const dynamic="force-dynamic";
-export const metadata={title:"Baca cerita"};
+export const metadata={title:"Baca cerita",robots:{index:false,follow:true}};
 export default async function ReadPage({params}:{params:Promise<{slug:string}>}){
   const book=await getPublicBook((await params).slug);if(!book)notFound();
   const cookie=(await cookies()).get(accessCookieName(book.id))?.value;
