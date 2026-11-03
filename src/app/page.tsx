@@ -11,7 +11,7 @@ export default function Home() {
     <img className="hero-bg" src={assets.hero} alt="Nana dan Mimi menyapa kupu-kupu di padang bunga yang hangat" fetchPriority="high" />
     <Nav />
     <div className="hero-inner"><div>
-      <span className="eyebrow">Cerita kecil, imajinasi tanpa batas</span>
+      <span className="eyebrow">Pikso · Cerita kecil, imajinasi tanpa batas</span>
       <h1>Langkah kecil.<br/>Petualangan<br/><em>besar.</em></h1>
       <p className="hero-copy">Dunia penuh keajaiban menantimu.<br/>Buka buku, dan bertualang di dunia imajinasi.</p>
       <div className="hero-actions">
@@ -20,6 +20,6 @@ export default function Home() {
     </div></div>
     <div className="hero-note"><img src={assets.book} alt=""/> Untuk setiap pemimpi kecil</div>
     <div className="hero-stamp" aria-hidden="true"><div><span>✿</span><br/>SMALL STORIES.<br/>BIG WONDER.</div></div>
-    <span className="sr-only"><BookOpen/> Cerita bergambar yang bisa dibaca tanpa login.</span>
+    <span className="sr-only"><BookOpen/> Pikso adalah platform buku cerita digital anak dengan kisah bergambar yang dapat dibaca tanpa login. Nana dan Mimi adalah salah satu seri karakter di Pikso.</span>
   </main>;
 }
