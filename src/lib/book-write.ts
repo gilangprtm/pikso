@@ -9,8 +9,8 @@ type Upload = { pdf: string; cover: string; pages: number };
 
 // Book metadata, master categories and selections commit or roll back together.
 export async function writeBook(id: string, input: BookInput, upload?: Upload) {
-  const changeAccess = input.removeAccessCode || !!input.accessCode;
-  const accessHash = !input.removeAccessCode && input.accessCode ? await hashAccessCode(input.accessCode) : null;
+  const changeAccess = true;
+  const accessHash = input.accessCode ? hashAccessCode(input.accessCode) : null;
   const client = await getDb().connect();
   try {
     await client.query("BEGIN");
