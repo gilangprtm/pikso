@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { hashPassword, verifyPassword } from "better-auth/crypto";
+import { verifyPassword } from "better-auth/crypto";
 import { getDb } from "@/lib/db";
 
 type AccessBook = { id: string; access_code_hash: string | null; access_version: string };
