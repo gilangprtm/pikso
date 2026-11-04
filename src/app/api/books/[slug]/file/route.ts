@@ -8,7 +8,7 @@ async function handleFile(request: Request, context: { params: Promise<{ slug: s
   const locked=book.access_locked;
   if (!await canReadBook(book,request.headers)) return new Response("Kode akses diperlukan.", { status: 401, headers: { "Cache-Control": "private, no-store" } });
   const response=await serveFile(request, "books", book.pdf_path, { revalidate: !locked });
-  if(locked){response.headers.set("Cache-Control","private, no-store");response.headers.set("X-Pikso-Pdf-Cache","memory-only");}
+  if(locked)response.headers.set("Cache-Control","private, no-store");
   return response;
 }
 export const GET = handleFile;
