@@ -1,28 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { unlockStory } from "@/lib/story-access-client";
+import { storyAccessKey, unlockStory } from "@/lib/story-access-client";
 export function StartReading({slug,id,title,locked}:{slug:string;id:string;title:string;locked:boolean}) {
   const router=useRouter();
   const navigate=()=>{router.push(`/books/${slug}/read`);router.refresh();};
+  const [hasSavedAccess,setHasSavedAccess]=useState(false);
+  useEffect(()=>{
+    const key=storyAccessKey(id);
+    const refresh=()=>{try{setHasSavedAccess(!!localStorage.getItem(key));}catch{setHasSavedAccess(false);}};
+    refresh();window.addEventListener("storage",refresh);
+    return()=>window.removeEventListener("storage",refresh);
+  },[id]);
   const [open,setOpen]=useState(false);const [code,setCode]=useState("");const [error,setError]=useState("");const [busy,setBusy]=useState(false);
   async function go(accessCode:string) {
     setBusy(true);setError("");
-    try { await unlockStory(slug,id,accessCode); navigate(); }
+    try { await unlockStory(slug,id,accessCode); setHasSavedAccess(true); navigate(); }
     catch(cause){setError(cause instanceof Error?cause.message:"Kode akses belum dapat diperiksa.");setBusy(false);}
   }
   async function start(){
     if(!locked){navigate();return;}
     setBusy(true);setError("");
-    try{await unlockStory(slug,id);navigate();}
-    catch{setBusy(false);setCode("");setOpen(true);}
+    try{await unlockStory(slug,id);setHasSavedAccess(true);navigate();}
+    catch{setHasSavedAccess(false);setBusy(false);setCode("");setOpen(true);}
   }
   return <>
-    <Button type="button" className="button-primary mt-5" onClick={()=>void start()} disabled={busy}>{locked?<LockKeyhole size={16}/>:null} MULAI MEMBACA <ArrowRight size={17}/></Button>
+    <Button type="button" className="button-primary mt-5" onClick={()=>void start()} disabled={busy}>{locked&&!hasSavedAccess?<LockKeyhole size={16}/>:null} MULAI MEMBACA <ArrowRight size={17}/></Button>
     <Dialog open={open} onOpenChange={value=>{if(!busy)setOpen(value);}}>
       <DialogContent showCloseButton={!busy}>
         <DialogHeader><DialogTitle>Kode akses cerita</DialogTitle><DialogDescription>{title} memerlukan kode akses untuk dibaca.</DialogDescription></DialogHeader>
