@@ -24,6 +24,7 @@ export function BookForm({ mode, id, initial, categories = [], accessLocked = fa
   const returnTo = adminBookReturnHref(searchParams?.get("returnTo"));
   const [values,setValues] = useState<Values>(initial ?? { title:"",slug:"",description:"",author:"",categories:[],accessCode:"",status:"draft" });
   const [error,setError] = useState("");
+  const [accessLoaded,setAccessLoaded] = useState(mode === "create");
   const [busy,setBusy] = useState(false);
   const [uploadProgress,setUploadProgress] = useState<PdfUploadProgress | null>(null);
   const [uploadId,setUploadId] = useState("");
@@ -39,8 +40,9 @@ export function BookForm({ mode, id, initial, categories = [], accessLocked = fa
       .then((data: {accessCode: string | null; legacy: boolean}) => {
         if (controller.signal.aborted) return;
         setValues(current => ({...current,accessCode:data.accessCode ?? ""}));
+        setAccessLoaded(true);
         if (data.legacy) toast.info("Kode akses lama tidak dapat ditampilkan. Masukkan kode baru untuk menggantinya.");
-      }).catch(() => { if (!controller.signal.aborted) toast.error("Gagal memuat kode akses buku."); });
+      }).catch(() => { if (!controller.signal.aborted) toast.error("Gagal memuat kode akses buku. Muat ulang sebelum menyimpan."); });
     return () => controller.abort();
   },[mode,id]);
   async function startPdfUpload(file: File) {
@@ -70,7 +72,7 @@ export function BookForm({ mode, id, initial, categories = [], accessLocked = fa
   function update(name: "title" | "slug" | "description" | "author" | "status", value: string) { setValues(current => ({...current,[name]: value})); }
   function updateCategories(value: string[]) { setValues(current => ({...current,categories:value})); }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setError("");setBusy(true);
+    event.preventDefault(); if(!accessLoaded) {setError("Tunggu kode akses dimuat sebelum menyimpan.");return;} setError("");setBusy(true);
     try {
       if (mode === "create") {
         if (!selectedFile || !uploadId || uploadProgress?.phase !== "ready") throw new Error("Tunggu sampai upload PDF selesai sebelum menyimpan.");
@@ -100,6 +102,6 @@ export function BookForm({ mode, id, initial, categories = [], accessLocked = fa
     <Field className="admin-form-field"><FieldLabel htmlFor="status">Status publikasi</FieldLabel><Select name="status" items={publicationStatuses} value={values.status} onValueChange={value=>{if(value)update("status",value);}}><SelectTrigger id="status" className="w-full justify-between border-input bg-card px-2.5 py-2 text-base whitespace-normal data-[size=default]:h-10 sm:text-sm [&_[data-slot=select-value]]:min-w-0"><SelectValue/></SelectTrigger><SelectContent align="start" alignItemWithTrigger={false}>{publicationStatuses.map(status=><SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>)}</SelectContent></Select></Field>
     {mode === "edit" && id && <Field className="admin-form-field"><FieldTitle>Sampul saat ini</FieldTitle><img src={`/api/admin/books/${id}/cover`} alt="Sampul buku" className="book-cover-preview aspect-square w-full max-w-72 rounded-md bg-white object-contain"/><FieldDescription className="admin-form-hint">Buku baru memakai sampul otomatis dari halaman pertama PDF.</FieldDescription></Field>}
     {error&&<Alert variant="destructive" className="col-span-2"><AlertDescription>{error}</AlertDescription></Alert>}
-    <div className="admin-form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => { void cancelSelectedUpload(); router.push("/admin/books"); }}>Batal</Button><Button type="submit" disabled={busy || mode === "create" && uploadProgress?.phase !== "ready"}>{busy ? mode === "create" ? "Memproses PDF dan menyimpan…" : "Menyimpan…" : mode==="create"?"Simpan cerita":"Simpan perubahan"}</Button></div>
+    <div className="admin-form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => { void cancelSelectedUpload(); router.push("/admin/books"); }}>Batal</Button><Button type="submit" disabled={busy || !accessLoaded || mode === "create" && uploadProgress?.phase !== "ready"}>{busy ? mode === "create" ? "Memproses PDF dan menyimpan…" : "Menyimpan…" : mode==="create"?"Simpan cerita":"Simpan perubahan"}</Button></div>
   </form></Card>;
 }
