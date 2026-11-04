@@ -3,7 +3,6 @@ import { PDFDataRangeTransport } from "pdfjs-dist";
 
 export const PDF_CHUNK_SIZE = 256 * 1024;
 const MAX_CACHE_BYTES = 64 * 1024 * 1024;
-const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 type ChunkRecord = { id: string; url: string; etag: string; start: number; bytes: ArrayBuffer; usedAt: number };
 type ChunkMeta = { id: string; url: string; etag: string; usedAt: number; size: number };
 export interface PdfChunkStore {
@@ -79,7 +78,7 @@ export class IndexedPdfChunkStore implements PdfChunkStore {
               return;
             }
             const value = cursor.value as ChunkMeta;
-            if (!Number.isSafeInteger(value.size) || value.size <= 0 || value.usedAt < Date.now() - MAX_AGE_MS || (url === value.url && etag !== value.etag)) { store.delete(value.id); cursor.delete(); }
+            if (!Number.isSafeInteger(value.size) || value.size <= 0 || (url === value.url && etag !== value.etag)) { store.delete(value.id); cursor.delete(); }
             else entries.push(value);
             cursor.continue();
           };
@@ -131,7 +130,7 @@ export async function createCachedPdfSource(fileUrl: string, settings: Settings)
       const id = JSON.stringify([resource, etag, start]);
       const cached = await store?.get(id).catch(() => undefined);
       if (controller.signal.aborted) throw new Error("Aborted");
-      if (cached && cached.url === resource && cached.etag === etag && cached.start === start && cached.bytes instanceof ArrayBuffer && cached.bytes.byteLength === end - start && cached.usedAt >= Date.now() - MAX_AGE_MS) {
+      if (cached && cached.url === resource && cached.etag === etag && cached.start === start && cached.bytes instanceof ArrayBuffer && cached.bytes.byteLength === end - start) {
         if(store)void store.put({ ...cached, usedAt: Date.now() }).catch(() => {});
         return new Uint8Array(cached.bytes);
       }
