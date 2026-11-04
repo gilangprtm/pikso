@@ -1,10 +1,31 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { getDb } from "@/lib/db";
 
 type AccessBook = { id: string; access_code_hash: string | null; access_version: string };
 export const accessCookieName = (id: string) => `pikso-access-${id}`;
-export const hashAccessCode = (code: string) => hashPassword(code);
+// Encrypted codes are recoverable only by authenticated admins. Legacy password hashes remain verifiable.
+function encryptionKey() {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret || secret.length < 32) throw new Error("Access encryption is not configured");
+  return createHash("sha256").update("pikso-book-code:v1:").update(secret).digest();
+}
+export function decryptAccessCode(value: string | null): string | null {
+  if (!value?.startsWith("enc:v1:")) return null;
+  try {
+    const data = Buffer.from(value.slice(7), "base64url");
+    if (data.length < 29) return null;
+    const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), data.subarray(0,12));
+    decipher.setAuthTag(data.subarray(12,28));
+    return Buffer.concat([decipher.update(data.subarray(28)),decipher.final()]).toString("utf8");
+  } catch { return null; }
+}
+export function hashAccessCode(code: string) {
+  const nonce = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", encryptionKey(), nonce);
+  const encrypted = Buffer.concat([cipher.update(code,"utf8"),cipher.final()]);
+  return "enc:v1:" + Buffer.concat([nonce,cipher.getAuthTag(),encrypted]).toString("base64url");
+}
 export async function getBookAccess(id: string): Promise<AccessBook | null> {
   const result = await getDb().query<AccessBook>("SELECT id,access_code_hash,access_version FROM books WHERE id=$1", [id]);
   return result.rows[0] ?? null;
@@ -22,7 +43,9 @@ export function validAccessProof(book: AccessBook, proof?: string | null) {
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 export async function verifyAccessCode(book: AccessBook, code: string) {
-  return !!book.access_code_hash && verifyPassword({ hash: book.access_code_hash, password: code });
+  if (!book.access_code_hash) return false;
+  if (book.access_code_hash.startsWith("enc:v1:")) return decryptAccessCode(book.access_code_hash) === code;
+  return verifyPassword({ hash: book.access_code_hash, password: code });
 }
 export function cookieProof(headers: Headers, id: string) {
   const prefix = `${accessCookieName(id)}=`;
