@@ -2,7 +2,8 @@
 import { PDFDataRangeTransport } from "pdfjs-dist";
 
 export const PDF_CHUNK_SIZE = 256 * 1024;
-const MAX_CACHE_BYTES = 64 * 1024 * 1024;
+const MAX_CACHE_BYTES = 120 * 1024 * 1024;
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 type ChunkRecord = { id: string; url: string; etag: string; start: number; bytes: ArrayBuffer; usedAt: number };
 type ChunkMeta = { id: string; url: string; etag: string; usedAt: number; size: number };
 export interface PdfChunkStore {
@@ -66,20 +67,46 @@ export class IndexedPdfChunkStore implements PdfChunkStore {
           }
           const timer = setTimeout(() => { resolve(); try { tx.abort(); } catch {} }, 1000);
           const entries: ChunkMeta[] = [];
+          const now = Date.now();
           metadata.openCursor().onsuccess = event => {
             const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
             if (!cursor) {
-              let size = entries.reduce((sum, entry) => sum + entry.size, 0);
-              entries.sort((a, b) => a.usedAt - b.usedAt);
+              // Evict whole books, not individual PDF chunks. The opened book is last to go.
+              const books = new Map<string, { usedAt: number; size: number; ids: string[] }>();
               for (const entry of entries) {
+                const book = books.get(entry.url) ?? { usedAt: 0, size: 0, ids: [] };
+                book.usedAt = Math.max(book.usedAt, entry.usedAt);
+                book.size += entry.size;
+                book.ids.push(entry.id);
+                books.set(entry.url, book);
+              }
+              for (const [bookUrl, book] of books) {
+                if (book.usedAt < now - MAX_AGE_MS) {
+                  for (const id of book.ids) { store.delete(id); metadata.delete(id); }
+                  books.delete(bookUrl);
+                }
+              }
+              let size = [...books.values()].reduce((sum, book) => sum + book.size, 0);
+              for (const [bookUrl, book] of [...books].sort((a, b) =>
+                (a[0] === url ? Infinity : a[1].usedAt) - (b[0] === url ? Infinity : b[1].usedAt))) {
                 if (size <= MAX_CACHE_BYTES) break;
-                store.delete(entry.id); metadata.delete(entry.id); size -= entry.size;
+                for (const id of book.ids) { store.delete(id); metadata.delete(id); }
+                size -= book.size;
               }
               return;
             }
             const value = cursor.value as ChunkMeta;
-            if (!Number.isSafeInteger(value.size) || value.size <= 0 || (url === value.url && etag !== value.etag)) { store.delete(value.id); cursor.delete(); }
-            else entries.push(value);
+            if (!Number.isSafeInteger(value.size) || value.size <= 0 ||
+                (url === value.url && etag !== value.etag)) {
+              store.delete(value.id); cursor.delete();
+            } else {
+              // Refresh the entire book when opened; its seven-day TTL is sliding.
+              if (url === value.url && etag === value.etag) {
+                value.usedAt = now;
+                cursor.update(value);
+              }
+              entries.push(value);
+            }
             cursor.continue();
           };
           tx.oncomplete = tx.onerror = tx.onabort = () => { clearTimeout(timer); resolve(); };
