@@ -31,6 +31,18 @@ export function BookForm({ mode, id, initial, categories = [], accessLocked = fa
   const uploadController = useRef<AbortController | null>(null);
   const resumeKey = useRef("");
   useEffect(() => () => { uploadController.current?.abort(); }, []);
+  useEffect(() => {
+    if (mode !== "edit" || !id) return;
+    const controller = new AbortController();
+    fetch(`/api/admin/books/${id}/access`, {cache:"no-store",signal:controller.signal})
+      .then(async response => { if (!response.ok) throw new Error("Kode akses tidak dapat dimuat."); return response.json(); })
+      .then((data: {accessCode: string | null; legacy: boolean}) => {
+        if (controller.signal.aborted) return;
+        setValues(current => ({...current,accessCode:data.accessCode ?? ""}));
+        if (data.legacy) toast.info("Kode akses lama tidak dapat ditampilkan. Masukkan kode baru untuk menggantinya.");
+      }).catch(() => { if (!controller.signal.aborted) toast.error("Gagal memuat kode akses buku."); });
+    return () => controller.abort();
+  },[mode,id]);
   async function startPdfUpload(file: File) {
     uploadController.current?.abort();
     const controller = new AbortController(); uploadController.current = controller;
@@ -84,7 +96,7 @@ export function BookForm({ mode, id, initial, categories = [], accessLocked = fa
     <TextField id="author" label="Penulis" value={values.author} maxLength={100} onChange={value=>update("author",value)}/>
     <CategoryCombobox key={id ?? "new-book"} options={categories} value={values.categories} onChange={updateCategories} disabled={busy}/>
     <div className="span-2"><TextareaField label="Tentang cerita" value={values.description} maxLength={1500} rows={3} onChange={value=>update("description",value)}/></div>
-    <Field className="admin-form-field"><FieldLabel htmlFor="accessCode">Kode akses <span className="font-normal text-muted-foreground">(opsional)</span></FieldLabel><Input id="accessCode" name="accessCode" type="text" autoComplete="off" maxLength={128} value={values.accessCode ?? ""} placeholder={mode === "edit" && accessLocked ? "Kosongkan untuk mempertahankan kode" : "Kosongkan agar cerita terbuka"} disabled={busy} onChange={event=>setValues(current=>({...current,accessCode:event.target.value,removeAccessCode:false}))}/><FieldDescription>Kode bersifat sensitif dan tidak ditampilkan kembali. Pada edit, biarkan kosong untuk mempertahankan kode saat ini.</FieldDescription>{mode === "edit" && accessLocked && <Button type="button" variant="outline" className="w-fit" disabled={busy} onClick={()=>setValues(current=>({...current,accessCode:"",removeAccessCode:true}))}>{values.removeAccessCode ? "Kode akan dihapus saat disimpan" : "Hapus kode akses"}</Button>}</Field>
+    <Field className="admin-form-field"><FieldLabel htmlFor="accessCode">Kode akses <span className="font-normal text-muted-foreground">(opsional)</span></FieldLabel><Input id="accessCode" name="accessCode" type="text" autoComplete="off" maxLength={128} value={values.accessCode ?? ""} placeholder="Kosongkan agar cerita tanpa kode akses" disabled={busy} onChange={event=>setValues(current=>({...current,accessCode:event.target.value}))}/><FieldDescription>Admin dapat melihat dan mengubah kode akses. Kosongkan untuk membuat buku dapat dibaca tanpa kode.</FieldDescription></Field>
     <Field className="admin-form-field"><FieldLabel htmlFor="status">Status publikasi</FieldLabel><Select name="status" items={publicationStatuses} value={values.status} onValueChange={value=>{if(value)update("status",value);}}><SelectTrigger id="status" className="w-full justify-between border-input bg-card px-2.5 py-2 text-base whitespace-normal data-[size=default]:h-10 sm:text-sm [&_[data-slot=select-value]]:min-w-0"><SelectValue/></SelectTrigger><SelectContent align="start" alignItemWithTrigger={false}>{publicationStatuses.map(status=><SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>)}</SelectContent></Select></Field>
     {mode === "edit" && id && <Field className="admin-form-field"><FieldTitle>Sampul saat ini</FieldTitle><img src={`/api/admin/books/${id}/cover`} alt="Sampul buku" className="book-cover-preview aspect-square w-full max-w-72 rounded-md bg-white object-contain"/><FieldDescription className="admin-form-hint">Buku baru memakai sampul otomatis dari halaman pertama PDF.</FieldDescription></Field>}
     {error&&<Alert variant="destructive" className="col-span-2"><AlertDescription>{error}</AlertDescription></Alert>}
