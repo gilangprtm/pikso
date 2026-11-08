@@ -136,9 +136,19 @@ test("book form requires only PDF, explains automatic covers and retains limits 
   }
 });
 
+test("book table renders configured sales links safely and an em-dash when empty", () => {
+  const options={pageSize:10 as const,search:"",status:"all" as const,sort:"created_at" as const,direction:"desc" as const};
+  const base={id:"one",title:"Buku Satu",author:"Studio",category:"Imajinasi",status:"draft" as const,pdf_pages:12};
+  const configured=render(createElement(BooksTable,{books:[{...base,sales_link:"https://shop.example/book?from=admin"}],current:1,pages:1,total:1,options}));
+  assert.match(configured,/<a[^>]*href="https:\/\/shop\.example\/book\?from=admin"[^>]*target="_blank"[^>]*rel="noopener noreferrer"[^>]*>/);
+  const empty=render(createElement(BooksTable,{books:[{...base,sales_link:""}],current:1,pages:1,total:1,options}));
+  assert.match(empty,/—/);
+  assert.doesNotMatch(empty,/<a[^>]*href=""/);
+});
+
 test("book table renders rows, status and management actions while preserving server pagination", () => {
   const options={pageSize:10 as const,search:"",status:"all" as const,sort:"created_at" as const,direction:"desc" as const};
-  const html = render(createElement(BooksTable, {books:[{id:"one",title:"Buku Satu",author:"Studio",category:"Imajinasi",status:"draft",pdf_pages:12}],current:2,pages:3,total:21,options}));
+  const html = render(createElement(BooksTable, {books:[{id:"one",title:"Buku Satu",author:"Studio",category:"Imajinasi",status:"draft",pdf_pages:12,sales_link:""}],current:2,pages:3,total:21,options}));
   for (const text of ["Buku Satu","Studio","Imajinasi","Draft","12","Baris per halaman"]) assert.ok(html.includes(text));
   assert.match(html,/aria-label="Aksi Buku Satu"/);
   assert.match(html,/pageSize=10/);

@@ -3,8 +3,22 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { absoluteStoragePath } from "@/lib/storage";
 
-type Options = { revalidate?: boolean };
+type Options = { revalidate?: boolean; downloadName?: string };
 type ByteRange = { start: number; end: number };
+
+function attachmentDisposition(filename: string) {
+  const safeName = Array.from(filename, character => {
+    const code = character.codePointAt(0)!;
+    return code === 47 || code === 92 ? "_" : code < 32 || code === 127 ? " " : character;
+  }).join("").trim().split(" ").filter(Boolean).join(" ") || "book.pdf";
+  const fallback = Array.from(safeName.normalize("NFKD"), character => {
+    const code = character.codePointAt(0)!;
+    return code >= 0x300 && code <= 0x36f ? "" : code >= 0x20 && code <= 0x7e && code !== 34 ? character : "_";
+  }).join("");
+  const encoded = encodeURIComponent(safeName).replaceAll("'", "%27").replaceAll("(", "%28").replaceAll(")", "%29").replaceAll("*", "%2A");
+  return `attachment; filename=\"${fallback}\"; filename*=UTF-8''${encoded}`;
+}
+
 
 function parseRange(header: string | null, size: number): ByteRange | null | "invalid" {
   if (!header) return null;
@@ -32,7 +46,7 @@ export async function serveFile(request: Request, kind: "books" | "covers", file
     const lastModified = modified.toUTCString();
     const headers = new Headers({
       "Content-Type": kind === "books" ? "application/pdf" : "image/webp",
-      "Content-Disposition": "inline",
+      "Content-Disposition": options.downloadName ? attachmentDisposition(options.downloadName) : "inline",
       "Cache-Control": options.revalidate ? "private, max-age=0, must-revalidate" : "private, no-store",
       "X-Content-Type-Options": "nosniff",
       "Accept-Ranges": "bytes",

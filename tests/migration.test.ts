@@ -6,7 +6,7 @@ import { PGlite } from "@electric-sql/pglite";
 async function migrate(db:PGlite) {
   await db.exec("CREATE TABLE IF NOT EXISTS schema_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())");
   let changed = false;
-  for (const id of ["001-initial", "002-book-categories", "003-book-access-codes"]) {
+  for (const id of ["001-initial", "002-book-categories", "003-book-access-codes", "004-book-sales-link"]) {
     const found=await db.query("SELECT id FROM schema_migrations WHERE id=$1",[id]);
     if(!found.rows.length){await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));await db.query("INSERT INTO schema_migrations(id) VALUES($1)",[id]);changed=true;}
   }
@@ -21,11 +21,27 @@ test("initial PostgreSQL migration runs once, has auth and books schema, and lea
     for(const table of ["user","session","account","verification","books","schema_migrations","m_book_category","tr_book_category"])assert.ok(columns.rows.some(row=>row.table_name===table),`missing ${table}`);
     assert.ok(columns.rows.some(row=>row.table_name==="books"&&row.column_name==="access_code_hash"));
     assert.ok(columns.rows.some(row=>row.table_name==="books"&&row.column_name==="access_version"));
-    const book=await db.query<{id:string;slug:string;title:string;description:string;author:string;category:string;status:string;pdf_path:string;cover_path:string;pdf_pages:number}>("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages) VALUES('tiny-test','Test','a.pdf','b.webp',1) RETURNING *");
+    assert.ok(columns.rows.some(row=>row.table_name==="books"&&row.column_name==="sales_link"));
+    const old=await db.query<{id:string}>("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages) VALUES('old-test','Old','a.pdf','b.webp',1) RETURNING id");
+    const book=await db.query<{id:string;slug:string;title:string;description:string;author:string;category:string;status:string;pdf_path:string;cover_path:string;pdf_pages:number;sales_link:string}>("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages,sales_link) VALUES('tiny-test','Test','a.pdf','b.webp',1,'https://example.test/access') RETURNING *");
+    const oldAfter=await db.query<{sales_link:string}>("SELECT sales_link FROM books WHERE id=$1",[old.rows[0].id]);
+    assert.equal(oldAfter.rows[0].sales_link,"");
+    assert.equal(book.rows[0].sales_link,"https://example.test/access");
     assert.equal(book.rows[0].status,"draft");
     await assert.rejects(db.query("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages) VALUES('tiny-test','duplicate','a.pdf','b.webp',1)"));
     await assert.rejects(db.query("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages) VALUES('bad-pages','Bad','a.pdf','b.webp',0)"));
   }finally{await db.close();}
+});
+test("sales-link migration preserves legacy rows and initializes their link to empty",async()=>{
+  const db=new PGlite();
+  try {
+    for(const id of ["001-initial","002-book-categories","003-book-access-codes"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
+    const before=await db.query<{id:string}>("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages) VALUES('pre-sales-link','Legacy','a.pdf','b.webp',1) RETURNING id");
+    await db.exec(await readFile(new URL("../db/004-book-sales-link.sql",import.meta.url),"utf8"));
+    const after=await db.query<{id:string;sales_link:string}>("SELECT id,sales_link FROM books WHERE id=$1",[before.rows[0].id]);
+    assert.equal(after.rows.length,1);
+    assert.equal(after.rows[0].sales_link,"");
+  } finally { await db.close(); }
 });
 test("schema enforces auth relations and book publication status",async()=>{
   const db=new PGlite();

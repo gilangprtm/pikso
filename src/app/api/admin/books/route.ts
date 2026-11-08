@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     await authorizeAdmin(request);
     enterStage("receive-body");
     const form = await boundedFormData(request);
-    const parsed = bookInput.safeParse({ title: form.get("title"), slug: form.get("slug"), description: form.get("description") ?? "", author: form.get("author") ?? "", categories: form.getAll("categories"), accessCode: form.get("accessCode") ?? "", status: form.get("status") ?? "draft" });
+    const parsed = bookInput.safeParse({ title: form.get("title"), slug: form.get("slug"), description: form.get("description") ?? "", author: form.get("author") ?? "", categories: form.getAll("categories"), accessCode: form.get("accessCode") ?? "", salesLink: form.get("salesLink") ?? "", status: form.get("status") ?? "draft" });
     if (!parsed.success) return formError(safeError(parsed.error));
     const pdf = form.get("pdf");
     if (!(pdf instanceof File)) return formError("File cerita PDF wajib diunggah.");

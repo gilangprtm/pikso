@@ -7,6 +7,7 @@ export const bookInput = z.object({
   author: z.string().trim().max(100),
   categories: z.array(z.string().trim().min(1, "Nama kategori wajib diisi.").max(50, "Nama kategori maksimal 50 karakter.")).max(20, "Pilih maksimal 20 kategori."),
   accessCode: z.string().max(128, "Kode akses maksimal 128 karakter.").default(""),
+  salesLink: z.string().trim().max(2048, "Link Jual maksimal 2048 karakter.").default("").refine(value => value === "" || (() => { try { const url = new URL(value); return url.protocol === "http:" || url.protocol === "https:"; } catch { return false; } })(), "Link Jual harus berupa URL absolut http atau https."),
   removeAccessCode: z.boolean().default(false),
   status: z.enum(["draft", "published"]),
 });

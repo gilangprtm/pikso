@@ -15,9 +15,9 @@ test("detail page keeps separate cover and normal-flow book copy, back/read link
     "react/jsx-runtime":runtime,
     "next/link":{default:({children,...props}:{children:ReactNode})=>createElement("a",props,children)},
     "next/navigation":{notFound:()=>{throw new Error("test-not-found");}},
-    "lucide-react":{ArrowLeft:icon,ArrowRight:icon,BookOpen:icon,Clock3:icon},
+    "lucide-react":{ArrowLeft:icon,ArrowRight:icon,BookOpen:icon,Clock3:icon,Download:icon},
     "@/components/nav":{Nav:()=>createElement("nav",null,"Navigasi")},
-    "@/components/books/start-reading":{StartReading:({slug}:{slug:string})=>createElement("a",{href:`/books/${slug}/read`},"MULAI MEMBACA")},
+    "@/components/books/start-reading":{StartReading:({slug,title,showDownload}:{slug:string;title:string;showDownload:boolean})=>createElement("div",null,showDownload?createElement("button",{type:"button","data-variant":"default","data-size":"icon",className:"button-primary book-download-button","aria-label":`Unduh ${title} sebagai PDF`},createElement("svg",{"aria-hidden":true})):null,createElement("a",{href:`/books/${slug}/read`},"MULAI MEMBACA"))},
 
     "@/lib/books":{getPublicBook:async(slug:string)=>{queries.push(slug);return slug==="missing"?null:book;}},
   };
@@ -31,10 +31,14 @@ test("detail page keeps separate cover and normal-flow book copy, back/read link
   assert.match(html,/<div class="book-detail-cover"><img[^>]*src="\/api\/books\/nana-dan-hutan-seribu-keajaiban\/cover"[^>]*\/><\/div><div class="book-detail-copy">/);
   assert.match(html,/<h1>Nana &lt;awan&gt; &amp; teman<\/h1>/);
   assert.match(html,/href="\/books"/);assert.match(html,/href="\/books\/nana-dan-hutan-seribu-keajaiban\/read"/);
+  assert.match(html, /<button type="button" data-variant="default" data-size="icon" class="button-primary book-download-button" aria-label="Unduh Nana &lt;awan&gt; &amp; teman sebagai PDF"><svg aria-hidden="true"><\/svg><\/button>/);
+  assert.ok(html.indexOf('aria-label="Unduh Nana &lt;awan&gt; &amp; teman sebagai PDF"') < html.indexOf('href="/books/nana-dan-hutan-seribu-keajaiban/read"'), "download button comes before Start Reading");
   for(const text of ["Petualangan","Pikso","15","MULAI MEMBACA"])assert.ok(html.includes(text));
   book.slug="nana-awan";
   const other=renderToStaticMarkup(await exports.default!({params:Promise.resolve({slug:book.slug})}));
-  assert.doesNotMatch(other,/book-detail-catalog-background/);
+  assert.match(other,/book-detail-catalog-background/);
+  assert.match(other,/aria-label="Unduh Nana &lt;awan&gt; &amp; teman sebagai PDF"/);
+  assert.match(other,/href="\/books\/nana-awan\/read"/);
   await assert.rejects(exports.default!({params:Promise.resolve({slug:"missing"})}),/test-not-found/);
 });
 
@@ -44,11 +48,28 @@ test("detail mobile styles give cover a bounded square owner, isolate image sizi
     const result:Record<string,string>={};
     css.walkRules(r=>{
       const parent=r.parent;
-      if(!r.selectors.includes(selector))return;
+      if(!r.selectors.some(candidate=>candidate===selector||candidate.endsWith(` ${selector}`)))return;
       if(media ? parent?.type!=="atrule"||!("params" in parent)||parent.params!==media : parent?.type!=="root")return;
       r.walkDecls(d=>{result[d.prop]=d.value;});
     });return result;
   }
+  const downloadButton=rule(".book-download-button");
+  assert.equal(downloadButton.background,"var(--ink)");assert.equal(downloadButton.color,"var(--secondary)");
+  assert.equal(downloadButton.width,"50px");assert.equal(downloadButton.height,"50px");assert.equal(downloadButton["border-radius"],"999px");
+  const readyButton=rule(".book-download-ready");
+  assert.equal(readyButton.width,"auto");assert.equal(readyButton.height,"50px");
+  assert.ok(readyButton.padding.includes("px"));
+  const mobileDownload=rule(".book-download-button", "(max-width:600px)");
+  assert.equal(mobileDownload.width,"45px");assert.equal(mobileDownload.height,"45px");
+  const mobileReady=rule(".book-download-ready", "(max-width:600px)");
+  assert.equal(mobileReady.height,"45px");
+  assert.ok(mobileReady.padding.includes("px"));
+  assert.equal(rule(".book-detail-actions .button-primary").height,"50px");
+  assert.equal(rule(".book-detail-actions .button-primary").borderRadius,undefined);
+  assert.equal(rule(".book-detail-actions .button-primary")["margin-top"],"20px");
+  assert.equal(rule(".book-detail-actions .book-download-button")["margin-top"],"20px");
+  assert.equal(rule(".book-detail-actions .button-primary", "(max-width:600px)").height,"45px");
+  assert.equal(rule(".book-detail-actions .book-download-button", "(max-width:600px)").height,"45px");
   const background=rule(".page-screen::before").background;
   assert.match(background,/books-background\.png/);
   assert.equal(rule(".book-detail-screen.book-detail-catalog-background").background,background);

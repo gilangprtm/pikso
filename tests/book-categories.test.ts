@@ -50,7 +50,7 @@ test("book category writes are atomic, reusable on the next book, editable, and 
   mock.method(pool,"query",query);
   mock.method(pool,"connect",async () => ({query,release() {}}));
   try {
-    for (const id of ["001-initial","002-book-categories","003-book-access-codes"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
+    for (const id of ["001-initial","002-book-categories","003-book-access-codes","004-book-sales-link"]) await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
     const {writeBook} = await import("../src/lib/book-write");
     const {listBookCategories,getBookCategories} = await import("../src/lib/book-categories");
     const {getAdminBook,getPublicBook,listBooks} = await import("../src/lib/books");
@@ -62,7 +62,10 @@ test("book category writes are atomic, reusable on the next book, editable, and 
     const second="22222222-2222-4222-8222-222222222222";
     const third="33333333-3333-4333-8333-333333333333";
     const upload={pdf:"test.pdf",cover:"test.webp",pages:1};
-    await writeBook(first,book("first",["Petualangan","Fantasi"]),upload);
+    await writeBook(first,{...book("first",["Petualangan","Fantasi"]),salesLink:"https://shop.example/first"},upload);
+    assert.equal((await getPublicBook("first"))?.sales_link,"https://shop.example/first");
+    assert.equal((await getAdminBook(first))?.sales_link,"https://shop.example/first");
+    assert.equal((await listBooks(1,true)).books.find(item=>item.id===first)?.sales_link,"https://shop.example/first");
     assert.deepEqual((await listBookCategories()).map(item=>item.name),["Fantasi","Petualangan"]);
     assert.equal((await getBookCategories(first)).length,2);
     // Simulates the next form consuming the persistent options, with case-insensitive reuse.
@@ -71,8 +74,8 @@ test("book category writes are atomic, reusable on the next book, editable, and 
     assert.equal((await getBookCategories(second)).length,2);
     assert.equal((await getPublicBook("first"))?.category,"Fantasi, Petualangan");
     assert.equal((await listBooks(1,true)).total,2);
-    function request(categories:unknown, origin="http://localhost:3000", method="PATCH") {
-      return new Request(`http://localhost:3000/api/admin/books/${first}`,{method,headers:{origin,"content-type":"application/json"},body:method==="PATCH"?JSON.stringify({...book("first"),categories}):undefined});
+    function request(categories:unknown, origin="http://localhost:3000", method="PATCH", salesLink="") {
+      return new Request(`http://localhost:3000/api/admin/books/${first}`,{method,headers:{origin,"content-type":"application/json"},body:method==="PATCH"?JSON.stringify({...book("first"),categories,salesLink}):undefined});
     }
     const context={params:Promise.resolve({id:first})};
     role=null; assert.equal((await PATCH(request([]),context)).status,401);
@@ -81,7 +84,10 @@ test("book category writes are atomic, reusable on the next book, editable, and 
     assert.equal((await PATCH(request([],"https://untrusted.test"),context)).status,403);
     assert.equal((await PATCH(request([" "]),context)).status,400);
     assert.equal((await PATCH(request([]),{params:Promise.resolve({id:third})})).status,404);
-    assert.equal((await PATCH(request(["Fantasi"]),context)).status,200);
+    assert.equal((await PATCH(request(["Fantasi"],"http://localhost:3000","PATCH","https://shop.example/updated"),context)).status,200);
+    assert.equal((await getAdminBook(first))?.sales_link,"https://shop.example/updated");
+    assert.equal((await getPublicBook("first"))?.sales_link,"https://shop.example/updated");
+    assert.equal((await listBooks(1,true)).books.find(item=>item.id===first)?.sales_link,"https://shop.example/updated");
     assert.deepEqual((await getBookCategories(first)).map(item=>item.name),["Fantasi"]);
     assert.equal((await listBookCategories()).length,2);
     failRelation=true;

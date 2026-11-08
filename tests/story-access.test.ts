@@ -32,6 +32,7 @@ test("additive migration, atomic code writes, lifetime proofs, API and file auth
     for(const id of ["001-initial","002-book-categories"])await db.exec(await readFile(new URL(`../db/${id}.sql`,import.meta.url),"utf8"));
     await db.query("INSERT INTO books(slug,title,pdf_path,cover_path,pdf_pages) VALUES('legacy','Legacy','a.pdf','b.webp',1)");
     const sql=await readFile(new URL("../db/003-book-access-codes.sql",import.meta.url),"utf8");await db.exec(sql);await db.exec(sql);
+    const salesSql=await readFile(new URL("../db/004-book-sales-link.sql",import.meta.url),"utf8");await db.exec(salesSql);await db.exec(salesSql);
     const legacy=await db.query<{access_code_hash:null;access_version:string}>("SELECT access_code_hash,access_version FROM books WHERE slug='legacy'");
     assert.equal(legacy.rows[0].access_code_hash,null);assert.match(legacy.rows[0].access_version,/^[0-9a-f-]{36}$/);
     const {writeBook}=await import("../src/lib/book-write");
@@ -77,15 +78,22 @@ test("additive migration, atomic code writes, lifetime proofs, API and file auth
       assert.equal(granted.status,method==="HEAD"?200:206);assert.equal(granted.headers.get("cache-control"),"private, no-store");assert.equal(granted.headers.get("x-pikso-pdf-cache"),"memory-only");
       if(method==="GET")assert.equal(await granted.text(),"%PDF-");
     }
-    const version=access.access_version;await writeBook(id,{...metadata,title:"Changed",accessCode:""});
-    assert.equal((await getBookAccess(id))!.access_version,version);assert.ok(await canReadBook(book,new Headers({cookie})));
+    const version=access.access_version;
+    await writeBook(id,{...metadata,title:"Changed",accessCode:"NanaTest20256"});
+    const editedAccess=(await getBookAccess(id))!;assert.notEqual(editedAccess.access_version,version);
+    assert.ok(await verifyAccessCode(editedAccess,"NanaTest20256"));
+    assert.equal(await canReadBook(book,new Headers({cookie})),false);
+    assert.equal((await post({proof})).status,403);assert.equal((await post({code:"NanaTest20256"})).status,200);
+    const currentProof=issueAccessProof(editedAccess);const currentCookie=`${accessCookieName(id)}=${currentProof}`;
+    assert.ok(await canReadBook(book,new Headers({cookie:currentCookie})));
+    const currentVersion=editedAccess.access_version;
     failCategories=true;await assert.rejects(writeBook(id,{...metadata,accessCode:"RollbackTest"}));failCategories=false;
-    assert.equal((await getBookAccess(id))!.access_version,version);assert.ok(await canReadBook(book,new Headers({cookie})));
+    assert.equal((await getBookAccess(id))!.access_version,currentVersion);assert.ok(await canReadBook(book,new Headers({cookie:currentCookie})));
     await writeBook(id,{...metadata,accessCode:"ReplacementTest"});
-    assert.notEqual((await getBookAccess(id))!.access_version,version);assert.equal(await canReadBook(book,new Headers({cookie})),false);
-    assert.equal((await post({proof})).status,403);assert.equal((await post({code:"NanaTest20256"})).status,403);
+    assert.notEqual((await getBookAccess(id))!.access_version,currentVersion);assert.equal(await canReadBook(book,new Headers({cookie:currentCookie})),false);
+    assert.equal((await post({proof:currentProof})).status,403);assert.equal((await post({code:"NanaTest20256"})).status,403);
     assert.equal((await post({code:"ReplacementTest"})).status,200);
-    await writeBook(id,{...metadata,removeAccessCode:true});
+    await writeBook(id,{...metadata,accessCode:""});
     assert.equal((await getPublicBook("locked"))!.access_locked,false);assert.equal((await getBookAccess(id))!.access_code_hash,null);
     assert.equal((await post({})).status,200);
     await writeBook(id,{...metadata,accessCode:"AnotherTest"});assert.equal((await post({proof})).status,403);

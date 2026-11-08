@@ -12,12 +12,13 @@ import { AdminBookActions } from "@/components/admin/AdminBookActions";
 import { ADMIN_BOOK_PAGE_SIZES, adminBooksHref, type NormalizedAdminBookOptions } from "@/lib/admin-books-query";
 import type { Book } from "@/lib/books";
 
-type ListedBook = Pick<Book,"id"|"title"|"author"|"category"|"status"|"pdf_pages">;
+type ListedBook = Pick<Book,"id"|"title"|"author"|"category"|"status"|"pdf_pages"|"sales_link">;
 const bookColumns = (returnTo: string): Column<ListedBook>[] => [
   { key:"title", label:"Judul Cerita", sortable:true, render: book => <div className="flex min-w-44 items-center gap-3"><img src={`/api/admin/books/${book.id}/cover`} alt="" className="size-12 shrink-0 rounded-lg bg-white object-contain"/><div className="min-w-0"><span className="block max-w-64 truncate font-medium text-foreground">{book.title}</span><span className="block max-w-64 truncate text-xs text-muted-foreground">{book.author || "—"}</span></div></div> },
   { key:"category", label:"Kategori", sortable:true, render: book => book.category || "—" },
   { key:"status", label:"Status", sortable:true, render: book => <Badge variant={book.status === "published" ? "secondary" : "outline"} className="h-6">{book.status === "published" ? "Terbit" : "Draft"}</Badge> },
   { key:"pdf_pages", label:"Halaman", sortable:true },
+  { key:"sales_link", label:"Link Jual", render: book => book.sales_link ? <a href={book.sales_link} target="_blank" rel="noopener noreferrer" className="text-primary underline">Buka link</a> : "—" },
   { key:"actions", label:"Aksi", render: book => <AdminBookActions id={book.id} title={book.title} returnTo={returnTo}/> },
 ];
 export function BooksTable({ books, current, pages, total, options }: {books:ListedBook[];current:number;pages:number;total:number;options:NormalizedAdminBookOptions}) {

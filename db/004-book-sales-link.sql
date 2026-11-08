@@ -1,0 +1,2 @@
+ALTER TABLE books
+  ADD COLUMN IF NOT EXISTS sales_link text NOT NULL DEFAULT '';

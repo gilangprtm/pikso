@@ -58,7 +58,7 @@ test("public metadata has route-specific titles, descriptions, canonical and com
     for (let i = 0; i < pages.length; i++) {
       assert.equal(pages[i].alternates?.canonical, `${origin}${paths[i]}`);
       assert.equal(pages[i].openGraph?.url, `${origin}${paths[i]}`);
-      assert.equal(pages[i].openGraph?.siteName, "Pikso Studio");
+      assert.equal(pages[i].openGraph?.siteName, "Pikso");
       assert.equal(pages[i].openGraph?.locale, "id_ID");
       assert.deepEqual(pages[i].robots, { index: true, follow: true });
       assert.equal((pages[i].twitter as { card: string }).card, "summary_large_image");
@@ -71,8 +71,10 @@ test("public metadata has route-specific titles, descriptions, canonical and com
     assert.doesNotMatch(data, /</);
     const schema = JSON.parse(data);
     assert.deepEqual(schema["@graph"].map((entry: Record<string, string>) => entry["@type"]), ["Organization", "WebSite"]);
-    assert.equal(schema["@graph"][0].name, "Pikso Studio");
+    assert.equal(schema["@graph"][0].name, "Pikso");
     assert.equal(schema["@graph"][0].logo, `${origin}/icon.png`);
+    assert.equal(schema["@graph"][1].name, "Pikso");
+    assert.equal(schema["@graph"][1].alternateName, "Pikso Studio");
     assert.equal(schema["@graph"][1].inLanguage, "id-ID");
     assert.equal(schema["@graph"][1].publisher["@id"], schema["@graph"][0]["@id"]);
     const rules = robots();

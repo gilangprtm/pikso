@@ -14,7 +14,7 @@ export default async function AdminBooks({ searchParams }: { searchParams: Promi
   const first = (value:string|string[]|undefined) => Array.isArray(value) ? value[0] : value;
   const options = normalizeAdminBookOptions({pageSize:Number(first(params.pageSize)),search:first(params.search),status:first(params.status),sort:first(params.sort),direction:first(params.direction)});
   const data = await listBooks(parsePage(first(params.page)), true, options);
-  const books = data.books.map(({id,title,author,category,status,pdf_pages}) => ({id,title,author,category,status,pdf_pages}));
+  const books = data.books.map(({id,title,author,category,status,pdf_pages,sales_link}) => ({id,title,author,category,status,pdf_pages,sales_link}));
   return <div className="min-w-0">
     <PageHeader title="Kelola Buku" breadcrumbs={[{label:"Dashboard",href:"/admin"},{label:"Kelola Buku",href:"/admin/books"}]} actionLabel="Tambah Buku" actionHref={adminBookFormHref("/admin/books/new",adminBooksHref(options,data.current))}/>
     <p className="mb-4 text-sm text-muted-foreground">{data.total} cerita {options.search || options.status !== "all" ? "ditemukan" : "tersimpan"}</p>
