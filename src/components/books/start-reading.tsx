@@ -33,7 +33,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const downloadHref = `/api/books/${slug}/file?download=1`;
+  const downloadHref = `/books/${slug}/download`;
   const [unlockForDownload, setUnlockForDownload] = useState(false);
 
   async function start() {
@@ -65,6 +65,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
         setOpen(false);
         setBusy(false);
         setUnlockForDownload(false);
+        router.push(downloadHref);
       } else {
         navigate();
       }
@@ -80,7 +81,6 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
         {showDownload ? (
           <a
             href={downloadHref}
-            download={`${title}.pdf`}
             onClick={event => {
               if (locked && !hasSavedAccess) {
                 event.preventDefault();
