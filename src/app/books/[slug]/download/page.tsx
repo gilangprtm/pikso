@@ -2,7 +2,6 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Download } from "lucide-react";
 import { assets } from "@/lib/assets";
 
 export default function DownloadPage() {
@@ -21,13 +20,8 @@ export default function DownloadPage() {
         <img src={assets.curious} alt="" />
         <h1>Petualanganmu sedang diunduh!</h1>
         <p>Silakan tunggu sebentar. Jika unduhan belum dimulai, ketuk tombol di bawah.</p>
-        <div className="mt-5 flex flex-wrap justify-center gap-3">
-          <a className="button-primary" href={fileUrl} target="pikso-download-frame">
-            <Download size={16} aria-hidden="true" /> Unduh PDF
-          </a>
-          <Link className="button-primary" href={`/books/${encodeURIComponent(slug)}`}>Kembali ke cerita</Link>
-        </div>
-        <p className="mt-4">Periksa daftar unduhan browser untuk melihat hasilnya.</p>
+        <Link className="button-primary mt-5" href={`/books/${encodeURIComponent(slug)}`}>Kembali ke cerita</Link>
+        <p className="mt-4">Jika unduhan tidak dimulai, kembali ke cerita dan tekan ikon unduh sekali lagi.</p>
       </div>
       <iframe ref={frame} name="pikso-download-frame" title="Unduhan PDF" hidden />
     </main>
