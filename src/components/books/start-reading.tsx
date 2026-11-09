@@ -67,7 +67,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
       await unlockStory(slug, id);
       setHasSavedAccess(true);
       setDownloadReady(true);
-      setOpen(true);
+      setOpen(false);
       setBusy(false);
     } catch {
       setBusy(false);
@@ -84,6 +84,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
       setHasSavedAccess(true);
       if (pendingAction === "download") {
         setDownloadReady(true);
+        setOpen(false);
         setBusy(false);
       } else {
         navigate();
@@ -97,7 +98,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
   return (
     <>
       <div className="book-detail-actions">
-        {showDownload && !locked ? (
+        {showDownload && (!locked || downloadReady) ? (
           <a
             href={downloadHref}
             download
@@ -131,20 +132,9 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
         <DialogContent showCloseButton={!busy}>
           <DialogHeader>
             <DialogTitle>Kode akses cerita</DialogTitle>
-            <DialogDescription>{downloadReady ? `Akses ${title} terverifikasi. Ketuk Unduh PDF untuk mengunduh cerita.` : `${title} memerlukan kode akses untuk dibaca.`}</DialogDescription>
+            <DialogDescription>{`${title} memerlukan kode akses untuk dibaca.`}</DialogDescription>
           </DialogHeader>
-          {pendingAction === "download" && downloadReady ? (
-            <a
-              href={downloadHref}
-              download
-              className={buttonVariants({ className: "button-primary" })}
-              aria-label={`Unduh ${title} sebagai PDF`}
-              title="Unduh cerita (PDF)"
-            >
-              <Download size={19} aria-hidden="true" />
-              Unduh PDF
-            </a>
-          ) : <form onSubmit={event => { event.preventDefault(); void go(code); }} className="grid gap-3">
+          <form onSubmit={event => { event.preventDefault(); void go(code); }} className="grid gap-3">
             <Input
               autoFocus
               autoComplete="off"
@@ -162,7 +152,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
                 {busy ? <><LoaderCircle className="animate-spin" />Memeriksa…</> : "Buka cerita"}
               </Button>
             </DialogFooter>
-          </form>}
+          </form>
           {locked && salesLink ? <a href={salesLink} target="_blank" rel="noopener noreferrer" className="inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm">Dapatkan Kode Akses</a> : null}
         </DialogContent>
       </Dialog>

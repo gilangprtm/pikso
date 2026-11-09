@@ -57,6 +57,7 @@ test("unlocked detail download is a styled native attachment anchor before Start
   assert.equal(download.props.target,undefined);assert.ok(String(download.props.className).includes("book-download-button"));
   assert.equal(download.props["aria-label"],"Unduh Story sebagai PDF");
   assert.equal(start.type,"Button");assert.ok((start.props.children as unknown[]).includes("MULAI MEMBACA"));
+  assert.equal(f.find(f.render(),"Dialog")!.props.open,false);
   const source=readFileSync("src/components/books/start-reading.tsx","utf8");
   assert.doesNotMatch(source,/window\.location\.assign|createObjectURL|\.click\(\)/);
 });
@@ -72,17 +73,24 @@ function assertNativeDownload(link:Element|undefined){
   assert.equal(link.props.download,true);assert.equal(link.props.target,undefined);assert.equal(link.props.onClick,undefined);
   assert.equal(link.props["aria-label"],"Unduh Story sebagai PDF");assert.equal(link.props.title,"Unduh cerita (PDF)");
 }
-test("locked remembered proof is validated before exposing a direct download link; reopening revalidates",async()=>{
+test("locked remembered proof is validated before revealing the inline native link with the dialog closed",async()=>{
   const f=component(true,true,true);assert.equal(f.find(f.render(),"a"),undefined);
   (f.find(f.render(),"Button")!.props.onClick as () => void)();
   assert.equal(f.find(f.render(),"a"),undefined);
   await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(f.calls,[["story","id"]]);assertNativeDownload(f.find(f.render(),"a"));assert.equal(f.values[1],true);assert.deepEqual(f.navigation,[]);
-  (f.find(f.render(),"Dialog")!.props.onOpenChange as (open:boolean)=>void)(false);
-  assert.equal(f.find(f.render(),"a"),undefined);
-  f.setFailure();(f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.find(f.render(),"a"),undefined);assert.equal(f.values[1],true);assert.ok(f.find(f.render(),"Input"));
-  assert.deepEqual(f.calls,[["story","id"],["story","id"]]);
+  assert.deepEqual(f.calls,[["story","id"]]);
+  const root=f.render();const dialog=f.find(root,"Dialog")!;
+  assert.equal(dialog.props.open,false);assert.equal(f.values[1],false);
+  const actions=f.find(root,"div")!.props.children as Element[];
+  const link=actions.find(action=>action?.type==="a");assertNativeDownload(link);
+  assert.equal(f.find(dialog,"a"),undefined);assert.deepEqual(f.navigation,[]);
+});
+test("locked stale saved proof opens code entry without exposing a native download anchor",async()=>{
+  const f=component(true,true,true);f.setFailure();
+  (f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
+  const root=f.render();const dialog=f.find(root,"Dialog")!;
+  assert.equal(f.find(root,"a"),undefined);assert.equal(dialog.props.open,true);assert.ok(f.find(dialog,"Input"));
+  assert.deepEqual(f.calls,[["story","id"]]);assert.deepEqual(f.navigation,[]);
 });
 test("locked valid code exposes a second-tap native download without navigating or auto-clicking",async()=>{
   const f=component(true,false,true);(f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
@@ -92,7 +100,11 @@ test("locked valid code exposes a second-tap native download without navigating 
   assert.equal(f.find(f.render(),"a"),undefined);
   await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(f.calls,[ ["story","id"], ["story","id","NanaAccess"] ]);
-  assertNativeDownload(f.find(f.render(),"a"));assert.equal(f.values[1],true);assert.equal(f.find(f.render(),"form"),undefined);assert.deepEqual(f.navigation,[]);
+  const root=f.render();const dialog=f.find(root,"Dialog")!;
+  assert.equal(dialog.props.open,false);assert.equal(f.values[1],false);
+  const actions=f.find(root,"div")!.props.children as Element[];
+  const link=actions.find(action=>action?.type==="a");assertNativeDownload(link);
+  assert.equal(f.find(dialog,"a"),undefined);assert.ok(f.find(dialog,"form"));assert.deepEqual(f.navigation,[]);
 });
 
 test("sales link appears only on locked stories with a configured URL and opens safely",()=>{
