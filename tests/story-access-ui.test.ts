@@ -61,52 +61,28 @@ test("unlocked detail download is a styled native attachment anchor before Start
   const source=readFileSync("src/components/books/start-reading.tsx","utf8");
   assert.doesNotMatch(source,/window\.location\.assign|createObjectURL|\.click\(\)/);
 });
-test("locked invalid code keeps the gate and exposes no attachment anchor",async()=>{
-  const f=component(true,false,true);(f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.find(f.render(),"a"),undefined);
-  f.setFailure();(f.find(f.render(),"Input")!.props.onChange as (event:unknown)=>void)({target:{value:"Wrong"}});
-  (f.find(f.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.values[3],"Kode salah");assert.equal(f.find(f.render(),"a"),undefined);assert.equal(f.values[1],true);
-});
 function assertNativeDownload(link:Element|undefined){
   assert.ok(link);assert.equal(link.type,"a");assert.equal(link.props.href,"/api/books/story/file?download=1");
-  assert.equal(link.props.download,true);assert.equal(link.props.target,undefined);assert.equal(link.props.onClick,undefined);
+  assert.equal(link.props.download,undefined);assert.equal(link.props.target,undefined);assert.equal(link.props.onClick,undefined);
   assert.equal(link.props["aria-label"],"Unduh Story sebagai PDF");assert.equal(link.props.title,"Unduh cerita (PDF)");
 }
-test("locked remembered proof is validated before revealing the inline native link with the dialog closed",async()=>{
-  const f=component(true,true,true);assert.equal(f.find(f.render(),"a"),undefined);
-  (f.find(f.render(),"Button")!.props.onClick as () => void)();
-  assert.equal(f.find(f.render(),"a"),undefined);
+test("locked books offer a direct public native download without requiring an access code",()=>{
+  for(const stored of [false,true]){
+    const f=component(true,stored,true);
+    const root=f.render();const actions=f.find(root,"div")!.props.children as Element[];
+    assertNativeDownload(actions.find(action=>action?.type==="a"));
+    assert.deepEqual(f.calls,[]);assert.deepEqual(f.navigation,[]);
+    assert.equal(f.find(root,"Dialog")!.props.open,false);
+  }
+});
+test("locked book reading still requires a valid access code",async()=>{
+  const f=component(true,false,true);
+  const actions=f.find(f.render(),"div")!.props.children as Element[];
+  (actions.find(action=>action?.type==="Button")!.props.onClick as ()=>void)();
   await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(f.calls,[["story","id"]]);
-  const root=f.render();const dialog=f.find(root,"Dialog")!;
-  assert.equal(dialog.props.open,false);assert.equal(f.values[1],false);
-  const actions=f.find(root,"div")!.props.children as Element[];
-  const link=actions.find(action=>action?.type==="a");assertNativeDownload(link);
-  assert.equal(f.find(dialog,"a"),undefined);assert.deepEqual(f.navigation,[]);
+  assert.equal(f.find(f.render(),"Dialog")!.props.open,true);
+  assertNativeDownload(f.find(f.render(),"a"));
 });
-test("locked stale saved proof opens code entry without exposing a native download anchor",async()=>{
-  const f=component(true,true,true);f.setFailure();
-  (f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
-  const root=f.render();const dialog=f.find(root,"Dialog")!;
-  assert.equal(f.find(root,"a"),undefined);assert.equal(dialog.props.open,true);assert.ok(f.find(dialog,"Input"));
-  assert.deepEqual(f.calls,[["story","id"]]);assert.deepEqual(f.navigation,[]);
-});
-test("locked valid code exposes a second-tap native download without navigating or auto-clicking",async()=>{
-  const f=component(true,false,true);(f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.values[1],true);assert.equal(f.find(f.render(),"a"),undefined);
-  (f.find(f.render(),"Input")!.props.onChange as (event:unknown)=>void)({target:{value:"NanaAccess"}});
-  (f.find(f.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});
-  assert.equal(f.find(f.render(),"a"),undefined);
-  await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(f.calls,[ ["story","id"], ["story","id","NanaAccess"] ]);
-  const root=f.render();const dialog=f.find(root,"Dialog")!;
-  assert.equal(dialog.props.open,false);assert.equal(f.values[1],false);
-  const actions=f.find(root,"div")!.props.children as Element[];
-  const link=actions.find(action=>action?.type==="a");assertNativeDownload(link);
-  assert.equal(f.find(dialog,"a"),undefined);assert.ok(f.find(dialog,"form"));assert.deepEqual(f.navigation,[]);
-});
-
 test("sales link appears only on locked stories with a configured URL and opens safely",()=>{
   for(const [locked,salesLink,expected] of [[true,"https://shop.example/access",true],[true,"",false],[false,"https://shop.example/access",false]] as const){
     const f=component(locked,false,false,salesLink);const tree=f.render();
