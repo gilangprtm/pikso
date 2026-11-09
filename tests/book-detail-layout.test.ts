@@ -33,7 +33,8 @@ test("detail page keeps separate cover and normal-flow book copy, back/read link
   assert.match(html,/href="\/books"/);assert.match(html,/href="\/books\/nana-dan-hutan-seribu-keajaiban\/read"/);
   assert.match(html, /<button type="button" data-variant="default" data-size="icon" class="button-primary book-download-button" aria-label="Unduh Nana &lt;awan&gt; &amp; teman sebagai PDF"><svg aria-hidden="true"><\/svg><\/button>/);
   assert.ok(html.indexOf('aria-label="Unduh Nana &lt;awan&gt; &amp; teman sebagai PDF"') < html.indexOf('href="/books/nana-dan-hutan-seribu-keajaiban/read"'), "download button comes before Start Reading");
-  for(const text of ["Petualangan","Pikso","15","MULAI MEMBACA"])assert.ok(html.includes(text));
+  for(const text of ["Petualangan","Pikso","15","MULAI MEMBACA","Untuk pembaca kecil"])assert.ok(html.includes(text));
+  assert.ok(!html.includes("Для маленьких читателей"));
   book.slug="nana-awan";
   const other=renderToStaticMarkup(await exports.default!({params:Promise.resolve({slug:book.slug})}));
   assert.match(other,/book-detail-catalog-background/);
