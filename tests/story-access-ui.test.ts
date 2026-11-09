@@ -5,15 +5,15 @@ import ts from "typescript";
 
 type Element={type:unknown;props:Record<string,unknown>};
 function component(locked:boolean,stored=false,showDownload=false,fetchMock:typeof fetch=async()=>{throw new Error("unexpected fetch");},salesLink=""){
-  const values:unknown[]=[false,"","",false,"read",null,null,""];const calls:unknown[][]=[];const navigation:string[]=[];const downloads:string[]=[];const fetchCalls:{url:string;init?:RequestInit}[]=[];const progressHistory:number[]=[];const timerCallbacks:(()=>void)[]=[];
-  const refs:{current:unknown}[]=[];let state=0,refIndex=0,cleanup:(()=>void)|undefined;let fail=false;
+  const values:unknown[]=[false,"","",false,"read"];const calls:unknown[][]=[];const navigation:string[]=[];const downloads:string[]=[];const fetchCalls:{url:string;init?:RequestInit}[]=[];const progressHistory:number[]=[];const timerCallbacks:(()=>void)[]=[];
+  let state=0,cleanup:(()=>void)|undefined;let fail=false;
   const element=(type:unknown,props:Record<string,unknown>)=>({type,props});
   const documentMock={body:{append:(_node:unknown)=>{}},createElement:(tagName:string)=>{let filename="";return {tagName,href:"",set download(value:string){filename=value;},get download(){return filename;},click(){downloads.push(filename);},remove(){}};}};
   const URLMock={createObjectURL:(_blob:Blob)=>"blob:story",revokeObjectURL:(_url:string)=>{}};
   const fetcher:typeof fetch=async(input,init)=>{fetchCalls.push({url:String(input),init});return fetchMock(input,init);};
   const localEntries=new Set<string>();if(stored)localEntries.add("pikso-story-access:id");
   const modules:Record<string,unknown>={
-    react:{useState:(value:unknown)=>{const index=state++;return [values[index]??value,(next:unknown)=>{values[index]=next;if(index===6&&typeof next==="number")progressHistory.push(next);}];},useRef:(value:unknown)=>{const index=refIndex++;refs[index]??={current:value};return refs[index];},useEffect:(effect:()=>void|(()=>void))=>{const result=effect();if(!cleanup)cleanup=result||undefined;}},
+    react:{useState:(value:unknown)=>{const index=state++;return [values[index]??value,(next:unknown)=>{values[index]=next;}];},useEffect:(effect:()=>void|(()=>void))=>{const result=effect();if(!cleanup)cleanup=result||undefined;}},
 
     "react/jsx-runtime":{jsx:element,jsxs:element,Fragment:"Fragment"},
     "next/navigation":{useRouter:()=>({push:(url:string)=>navigation.push(url),refresh:()=>{}})},
@@ -24,8 +24,8 @@ function component(locked:boolean,stored=false,showDownload=false,fetchMock:type
 
   };
   const compiled=ts.transpileModule(readFileSync("src/components/books/start-reading.tsx","utf8"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
-  const exports:{StartReading?:(props:unknown)=>Element}={};new Function("require","exports","window","fetch","document","URL","setTimeout","clearTimeout","localStorage",compiled)((id:string)=>modules[id],exports,{setTimeout:(callback:()=>void)=>{timerCallbacks.push(callback);return timerCallbacks.length;},addEventListener(){},removeEventListener(){}},fetcher,documentMock,URLMock,(callback:()=>void)=>{timerCallbacks.push(callback);return timerCallbacks.length;},(_timer:unknown)=>{}, {getItem:(key:string)=>localEntries.has(key)?"saved-proof":null,setItem:(key:string)=>{localEntries.add(key);},removeItem:(key:string)=>{localEntries.delete(key);}});
-  const render=()=>{state=0;refIndex=0;return exports.StartReading!({slug:"story",id:"id",title:"Story",locked,showDownload,salesLink});};
+  const exports:{StartReading?:(props:unknown)=>Element}={};new Function("require","exports","window","fetch","document","URL","setTimeout","clearTimeout","localStorage",compiled)((id:string)=>modules[id],exports,{location:{assign:(url:string)=>downloads.push(url)},setTimeout:(callback:()=>void)=>{timerCallbacks.push(callback);return timerCallbacks.length;},addEventListener(){},removeEventListener(){}},fetcher,documentMock,URLMock,(callback:()=>void)=>{timerCallbacks.push(callback);return timerCallbacks.length;},(_timer:unknown)=>{}, {getItem:(key:string)=>localEntries.has(key)?"saved-proof":null,setItem:(key:string)=>{localEntries.add(key);},removeItem:(key:string)=>{localEntries.delete(key);}});
+  const render=()=>{state=0;return exports.StartReading!({slug:"story",id:"id",title:"Story",locked,showDownload,salesLink});};
   function find(root:Element,type:string):Element|undefined{
     if(root.type===type)return root;
     const children=root.props.children;
@@ -43,13 +43,13 @@ test("Start Reading bypasses modal for open stories and restores remembered acce
 });
 test("locked story opens modal, wrong code stays put and correct code navigates",async()=>{
   const f=component(true);(f.find(f.render(),"Button")!.props.onClick as ()=>void)();await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.values[0],true);assert.deepEqual(f.navigation,[]);
+  assert.equal(f.values[1],true);assert.deepEqual(f.navigation,[]);
   (f.find(f.render(),"Input")!.props.onChange as (event:unknown)=>void)({target:{value:"TestCode"}});
   const form=f.find(f.render(),"form")!;(form.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
   assert.deepEqual(f.calls[1],["story","id","TestCode"]);assert.deepEqual(f.navigation,["/books/story/read"]);
-  const bad=component(true);bad.setFailure();bad.values[1]="Wrong";
+  const bad=component(true);bad.setFailure();bad.values[2]="Wrong";bad.values[1]=true;
   (bad.find(bad.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(bad.values[2],"Kode salah");assert.deepEqual(bad.navigation,[]);assert.equal(bad.values[3],false);
+  assert.equal(bad.values[3],"Kode salah");assert.deepEqual(bad.navigation,[]);assert.equal(bad.values[1],true);
 });
 test("detail download action uses the primary icon Button before Start Reading",()=>{
   const f=component(false,false,true);const actions=f.find(f.render(),"div")!.props.children as Element[];
@@ -59,62 +59,26 @@ test("detail download action uses the primary icon Button before Start Reading",
   assert.equal(download.props["aria-label"],"Unduh Story sebagai PDF");
   assert.equal(start.type,"Button");assert.ok((start.props.children as unknown[]).includes("MULAI MEMBACA"));
 });
-test("detail download starts an in-page PDF transfer and displays measured progress",async()=>{
-  const stream=new ReadableStream<Uint8Array>({start(controller){controller.enqueue(new Uint8Array(50));controller.enqueue(new Uint8Array(50));controller.close();}});
-  const f=component(false,false,true,async()=>new Response(stream,{status:200,headers:{"Content-Length":"100","Content-Type":"application/pdf"}}));
-  const button=f.find(f.render(),"Button")!;
-  (button.props.onClick as () => void)();
-  await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.fetchCalls.length,1);assert.equal(f.fetchCalls[0].url,"/api/books/story/file?download=1");
-  assert.equal(f.fetchCalls[0].init?.credentials,"same-origin");assert.equal(f.fetchCalls[0].init?.cache,"no-store");
-  assert.deepEqual(f.downloads,[]);assert.ok(f.progressHistory.includes(50));
-  const ready=f.find(f.render(),"Button")!;
-  assert.equal(ready.props["aria-label"],"Simpan Story sebagai PDF");
-  assert.ok((ready.props.children as unknown[]).includes("SIMPAN PDF"));
-  (ready.props.onClick as () => void)();
-  assert.deepEqual(f.downloads,["Story.pdf"]);
-  assert.deepEqual(f.navigation,[]);
+test("unlocked story download navigates directly to the attachment endpoint",()=>{
+  const f=component(false,false,true);(f.find(f.render(),"Button")!.props.onClick as () => void)();
+  assert.deepEqual(f.downloads,["/api/books/story/file?download=1"]);
+  assert.equal(f.fetchCalls.length,0);
 });
-test("download button replaces its icon with the measured percentage while bytes are transferring",async()=>{
-  let streamController:ReadableStreamDefaultController<Uint8Array>|undefined;
-  const f=component(false,false,true,async()=>new Response(new ReadableStream<Uint8Array>({start(controller){streamController=controller;}}),{headers:{"Content-Length":"100","Content-Type":"application/pdf"}}));
-  (f.find(f.render(),"Button")!.props.onClick as () => void)();
-  await new Promise(resolve=>setImmediate(resolve));
-  streamController!.enqueue(new Uint8Array(37));await new Promise(resolve=>setImmediate(resolve));
-  const progress=f.find(f.render(),"Button")!.props.children as Element;
-  assert.equal(progress.type,"span");assert.deepEqual(progress.props.children,[37,"%"]);
-  assert.equal(f.find(f.render(),"Button")!.props["aria-label"],"Mengunduh Story: 37%");
-  streamController!.close();await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));
+test("locked story with remembered proof validates before native download navigation",async()=>{
+  const f=component(true,true,true);(f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.calls,[["story","id"]]);assert.deepEqual(f.downloads,["/api/books/story/file?download=1"]);
 });
-test("download from a locked story with remembered access starts the in-page transfer",async()=>{
-  const f=component(true,true,true,async()=>new Response(new Uint8Array([1,2,3]),{headers:{"Content-Length":"3","Content-Type":"application/pdf"}}));
-  const button=f.find(f.render(),"Button")!;(button.props.onClick as () => void)();
-  await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(f.calls,[["story","id"]]);assert.equal(f.fetchCalls[0].url,"/api/books/story/file?download=1");assert.deepEqual(f.downloads,[]);
-  const ready=f.find(f.render(),"Button")!;assert.equal(ready.props["aria-label"],"Simpan Story sebagai PDF");
-  (ready.props.onClick as () => void)();assert.deepEqual(f.downloads,["Story.pdf"]);
-});
-test("locked story download asks for its code before starting the in-page transfer",async()=>{
-  const f=component(true,false,true,async()=>new Response(new Uint8Array([1]),{headers:{"Content-Length":"1","Content-Type":"application/pdf"}}));
-  const button=f.find(f.render(),"Button")!;(button.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(f.values[0],true);assert.equal(f.fetchCalls.length,0);
+test("locked download navigates only after valid code; invalid code stays in dialog",async()=>{
+  const f=component(true,false,true);(f.find(f.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(f.values[1],true);assert.deepEqual(f.downloads,[]);
   (f.find(f.render(),"Input")!.props.onChange as (event:unknown)=>void)({target:{value:"NanaAccess"}});
-  (f.find(f.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(f.calls,[["story","id"],["story","id","NanaAccess"]]);
-  assert.equal(f.fetchCalls[0].url,"/api/books/story/file?download=1");assert.deepEqual(f.downloads,[]);
-  const ready=f.find(f.render(),"Button")!;(ready.props.onClick as () => void)();assert.deepEqual(f.downloads,["Story.pdf"]);
-});
-test("leaving the book detail page aborts an in-progress PDF transfer",async()=>{
-  let requestSignal:AbortSignal|undefined;
-  const f=component(false,false,true,(_input,_init)=>new Promise<Response>((_resolve,reject)=>{
-    requestSignal=_init?.signal as AbortSignal;
-    requestSignal.addEventListener("abort",()=>reject(new DOMException("Aborted","AbortError")));
-  }));
-  (f.find(f.render(),"Button")!.props.onClick as () => void)();
-  assert.equal(requestSignal?.aborted,false);
-  f.cleanup();
-  assert.equal(requestSignal?.aborted,true);await new Promise(resolve=>setImmediate(resolve));
-  assert.deepEqual(f.downloads,[]);
+  (f.find(f.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.calls,[ ["story","id"], ["story","id","NanaAccess"] ]);
+  assert.deepEqual(f.downloads,["/api/books/story/file?download=1"]);
+  const bad=component(true,false,true);bad.setFailure();(bad.find(bad.render(),"Button")!.props.onClick as () => void)();await new Promise(resolve=>setImmediate(resolve));
+  (bad.find(bad.render(),"Input")!.props.onChange as (event:unknown)=>void)({target:{value:"Wrong"}});
+  (bad.find(bad.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(bad.values[3],"Kode salah");assert.deepEqual(bad.downloads,[]);assert.equal(bad.values[1],true);
 });
 
 test("sales link appears only on locked stories with a configured URL and opens safely",()=>{
