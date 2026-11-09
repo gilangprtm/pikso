@@ -63,25 +63,32 @@ test("unlocked detail download is a styled native attachment anchor before Start
 });
 function assertNativeDownload(link:Element|undefined){
   assert.ok(link);assert.equal(link.type,"a");assert.equal(link.props.href,"/api/books/story/file?download=1");
-  assert.equal(link.props.download,undefined);assert.equal(link.props.target,undefined);assert.equal(link.props.onClick,undefined);
+  assert.equal(link.props.download,undefined);assert.equal(link.props.target,undefined);assert.equal(typeof link.props.onClick,"function");
   assert.equal(link.props["aria-label"],"Unduh Story sebagai PDF");assert.equal(link.props.title,"Unduh cerita (PDF)");
 }
-test("locked books offer a direct public native download without requiring an access code",()=>{
-  for(const stored of [false,true]){
-    const f=component(true,stored,true);
-    const root=f.render();const actions=f.find(root,"div")!.props.children as Element[];
-    assertNativeDownload(actions.find(action=>action?.type==="a"));
-    assert.deepEqual(f.calls,[]);assert.deepEqual(f.navigation,[]);
-    assert.equal(f.find(root,"Dialog")!.props.open,false);
-  }
-});
-test("locked book reading still requires a valid access code",async()=>{
+test("locked book download asks for code before allowing native navigation",async()=>{
   const f=component(true,false,true);
-  const actions=f.find(f.render(),"div")!.props.children as Element[];
-  (actions.find(action=>action?.type==="Button")!.props.onClick as ()=>void)();
-  await new Promise(resolve=>setImmediate(resolve));
+  const link=f.find(f.render(),"a")!;assertNativeDownload(link);
+  let prevented=false;
+  (link.props.onClick as (event:{preventDefault:()=>void})=>void)({preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);
   assert.equal(f.find(f.render(),"Dialog")!.props.open,true);
-  assertNativeDownload(f.find(f.render(),"a"));
+  (f.find(f.render(),"Input")!.props.onChange as (event:unknown)=>void)({target:{value:"NanaAccess"}});
+  (f.find(f.render(),"form")!.props.onSubmit as (event:unknown)=>void)({preventDefault(){}});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(f.navigation,[]);
+  assert.equal(f.find(f.render(),"Dialog")!.props.open,false);
+  assert.equal(f.values[0],true);
+  prevented=false;
+  (f.find(f.render(),"a")!.props.onClick as (event:{preventDefault:()=>void})=>void)({preventDefault(){prevented=true;}});
+  assert.equal(prevented,false);
+});
+test("remembered access permits native download immediately without opening modal",()=>{
+  const f=component(true,true,true);const link=f.find(f.render(),"a")!;
+  let prevented=false;
+  (link.props.onClick as (event:{preventDefault:()=>void})=>void)({preventDefault(){prevented=true;}});
+  assert.equal(prevented,false);
+  assert.equal(f.find(f.render(),"Dialog")!.props.open,false);
 });
 test("sales link appears only on locked stories with a configured URL and opens safely",()=>{
   for(const [locked,salesLink,expected] of [[true,"https://shop.example/access",true],[true,"",false],[false,"https://shop.example/access",false]] as const){
