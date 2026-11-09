@@ -9,6 +9,7 @@ async function handleFile(request: Request, context: { params: Promise<{ slug: s
   const download = new URL(request.url).searchParams.get("download") === "1";
   if (!download && !await canReadBook(book,request.headers)) return new Response("Kode akses diperlukan.", { status: 401, headers: { "Cache-Control": "private, no-store" } });
   const response=await serveFile(request, "books", book.pdf_path, { revalidate: !locked, ...(download ? { downloadName: `${book.title}.pdf` } : {}) });
+  if (download && response.ok) response.headers.set("Content-Type", "application/octet-stream");
   if (download) response.headers.set("Cache-Control", "private, no-store, no-transform");
   if(locked) response.headers.set("Cache-Control",download ? "private, no-store, no-transform" : "private, no-store");
   return response;
