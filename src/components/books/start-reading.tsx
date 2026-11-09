@@ -34,8 +34,10 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const downloadHref = `/api/books/${slug}/file?download=1`;
+  const [unlockForDownload, setUnlockForDownload] = useState(false);
 
   async function start() {
+    setUnlockForDownload(false);
     if (!locked) {
       navigate();
       return;
@@ -59,7 +61,13 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
     try {
       await unlockStory(slug, id, accessCode);
       setHasSavedAccess(true);
-      navigate();
+      if (unlockForDownload) {
+        setOpen(false);
+        setBusy(false);
+        setUnlockForDownload(false);
+      } else {
+        navigate();
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Kode akses belum dapat diperiksa.");
       setBusy(false);
@@ -72,6 +80,15 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
         {showDownload ? (
           <a
             href={downloadHref}
+            onClick={event => {
+              if (locked && !hasSavedAccess) {
+                event.preventDefault();
+                setUnlockForDownload(true);
+                setCode("");
+                setError("");
+                setOpen(true);
+              }
+            }}
             className={buttonVariants({ variant: "default", size: "icon", className: "button-primary book-download-button mt-5" })}
             aria-label={`Unduh ${title} sebagai PDF`}
             title="Unduh cerita (PDF)"
