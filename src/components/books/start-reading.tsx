@@ -81,6 +81,8 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
           <a
             href={downloadHref}
             download={`${title}.pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={event => {
               if (locked && !hasSavedAccess) {
                 event.preventDefault();
