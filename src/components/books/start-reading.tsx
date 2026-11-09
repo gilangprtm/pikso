@@ -122,13 +122,13 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
               disabled={busy}
             />
             {error ? <p className="text-sm text-destructive" role="alert">{error}</p> : null}
-            <DialogFooter className="m-0 mt-1 border-0 bg-transparent p-0 sm:justify-end">
+            <DialogFooter className="m-0 mt-1 flex-col-reverse gap-2 border-0 bg-transparent p-0 sm:flex-row sm:items-center sm:justify-end">
+              {locked && salesLink ? <a href={salesLink} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center rounded-md border px-4 py-2 text-sm sm:w-auto">Dapatkan Kode Akses</a> : null}
               <Button type="submit" disabled={busy || !code.length}>
                 {busy ? <><LoaderCircle className="animate-spin" />Memeriksa…</> : "Buka cerita"}
               </Button>
             </DialogFooter>
           </form>
-          {locked && salesLink ? <a href={salesLink} target="_blank" rel="noopener noreferrer" className="inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm">Dapatkan Kode Akses</a> : null}
         </DialogContent>
       </Dialog>
     </>
