@@ -80,6 +80,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
         {showDownload ? (
           <a
             href={downloadHref}
+            download={`${title}.pdf`}
             onClick={event => {
               if (locked && !hasSavedAccess) {
                 event.preventDefault();
