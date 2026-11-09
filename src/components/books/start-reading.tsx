@@ -33,14 +33,9 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"read" | "download">("read");
-
-  const [downloadReady, setDownloadReady] = useState(false);
   const downloadHref = `/api/books/${slug}/file?download=1`;
 
   async function start() {
-    setPendingAction("read");
-    setDownloadReady(false);
     if (!locked) {
       navigate();
       return;
@@ -58,37 +53,13 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
     }
   }
 
-  async function download() {
-    setPendingAction("download");
-    setDownloadReady(false);
-    setBusy(true);
-    setError("");
-    try {
-      await unlockStory(slug, id);
-      setHasSavedAccess(true);
-      setDownloadReady(true);
-      setOpen(false);
-      setBusy(false);
-    } catch {
-      setBusy(false);
-      setCode("");
-      setOpen(true);
-    }
-  }
-
   async function go(accessCode: string) {
     setBusy(true);
     setError("");
     try {
       await unlockStory(slug, id, accessCode);
       setHasSavedAccess(true);
-      if (pendingAction === "download") {
-        setDownloadReady(true);
-        setOpen(false);
-        setBusy(false);
-      } else {
-        navigate();
-      }
+      navigate();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Kode akses belum dapat diperiksa.");
       setBusy(false);
@@ -98,29 +69,15 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
   return (
     <>
       <div className="book-detail-actions">
-        {showDownload && (!locked || downloadReady) ? (
+        {showDownload ? (
           <a
             href={downloadHref}
-            download
             className={buttonVariants({ variant: "default", size: "icon", className: "button-primary book-download-button mt-5" })}
             aria-label={`Unduh ${title} sebagai PDF`}
             title="Unduh cerita (PDF)"
           >
             <Download size={19} aria-hidden="true" />
           </a>
-        ) : showDownload ? (
-          <Button
-            type="button"
-            variant="default"
-            size="icon"
-            className="button-primary book-download-button mt-5"
-            aria-label={`Unduh ${title} sebagai PDF`}
-            title="Unduh cerita (PDF)"
-            onClick={() => { void download(); }}
-            disabled={busy}
-          >
-            <Download size={19} aria-hidden="true" />
-          </Button>
         ) : null}
         <Button type="button" className="button-primary mt-5" onClick={() => void start()} disabled={busy}>
           {locked&&!hasSavedAccess ? <LockKeyhole size={16} /> : null}
@@ -128,7 +85,7 @@ export function StartReading({ slug, id, title, locked, showDownload = false, sa
           <ArrowRight size={17} />
         </Button>
       </div>
-      <Dialog open={open} onOpenChange={value => { if (!busy) { setOpen(value); if (!value) setDownloadReady(false); } }}>
+      <Dialog open={open} onOpenChange={value => { if (!busy) { setOpen(value); } }}>
         <DialogContent showCloseButton={!busy}>
           <DialogHeader>
             <DialogTitle>Kode akses cerita</DialogTitle>
