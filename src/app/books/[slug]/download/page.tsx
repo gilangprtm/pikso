@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { assets } from "@/lib/assets";
+import { Download } from "lucide-react";
 
 export default function DownloadPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,10 +19,13 @@ export default function DownloadPage() {
     <main className="screen grid place-items-center px-6">
       <div className="empty-state">
         <img src={assets.curious} alt="" />
-        <h1>Petualanganmu sedang diunduh!</h1>
-        <p>Silakan tunggu sebentar. Jika unduhan belum dimulai, ketuk tombol di bawah.</p>
-        <Link className="button-primary mt-5" href={`/books/${encodeURIComponent(slug)}`}>Kembali ke cerita</Link>
-        <p className="mt-4">Jika unduhan tidak dimulai, kembali ke cerita dan tekan ikon unduh sekali lagi.</p>
+        <h1>Petualanganmu siap diunduh!</h1>
+        <p>Unduhan akan dicoba secara otomatis. Jika Safari belum memulai unduhan, ketuk tombol Unduh PDF.</p>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          <a className="button-primary" href={fileUrl} target="_blank" rel="noopener noreferrer"><Download size={16} aria-hidden="true" />Unduh PDF</a>
+          <Link className="button-primary" href={`/books/${encodeURIComponent(slug)}`}>Kembali ke cerita</Link>
+        </div>
+        <p className="mt-4">Safari mungkin meminta konfirmasi sebelum menyimpan PDF.</p>
       </div>
       <iframe ref={frame} name="pikso-download-frame" title="Unduhan PDF" hidden />
     </main>
