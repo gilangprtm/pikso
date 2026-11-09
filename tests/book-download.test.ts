@@ -22,20 +22,31 @@ test("book file endpoint uses the existing story-access gate and opts into a nam
   const optionsSeen: unknown[] = [];
   const source = readFileSync("src/app/api/books/[slug]/file/route.ts", "utf8");
   const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
-  const exports: { GET?: (request: Request, context: { params: Promise<{ slug: string }> }) => Promise<Response> } = {};
+  const exports: { GET?: (request: Request, context: { params: Promise<{ slug: string }> }) => Promise<Response>; HEAD?: (request: Request, context: { params: Promise<{ slug: string }> }) => Promise<Response> } = {};
   const modules: Record<string, unknown> = {
     "@/lib/books": { getPublicBook: async (slug: string) => slug === "story" ? { slug, title: "Nana dan Kerajaan di Atas Awan", pdf_path: "story.pdf", access_locked: true } : null },
     "@/lib/book-access": { canReadBook: async () => allowed },
-    "@/lib/serve-file": { serveFile: async (_request: Request, kind: string, filename: string, options: unknown) => { optionsSeen.push({ kind, filename, options }); return new Response("pdf", { headers: { "Content-Disposition": "attachment" } }); } },
+    "@/lib/serve-file": { serveFile: async (_request: Request, kind: string, filename: string, options: unknown) => { optionsSeen.push({ kind, filename, options }); return new Response("pdf", { headers: { "Content-Disposition": `attachment; filename="${(options as { downloadName?: string })?.downloadName ?? ""}"` } }); } },
   };
   new Function("require", "exports", js)((id: string) => modules[id], exports);
-  const request = new Request("http://localhost/api/books/story/file?download=1");
   const context = { params: Promise.resolve({ slug: "story" }) };
-  assert.equal((await exports.GET!(request, context)).status, 401);
+  const downloadRequest = new Request("http://localhost/api/books/story/file?download=1");
+  const downloadResponse = await exports.GET!(downloadRequest, context);
+  assert.equal(downloadResponse.status, 200, "download URL is public even for a locked story");
+  assert.equal(downloadResponse.headers.get("content-disposition"), 'attachment; filename="Nana dan Kerajaan di Atas Awan.pdf"');
+  assert.deepEqual(optionsSeen, [{ kind: "books", filename: "story.pdf", options: { revalidate: false, downloadName: "Nana dan Kerajaan di Atas Awan.pdf" } }]);
+  optionsSeen.length = 0;
+  const normalRequest = new Request("http://localhost/api/books/story/file");
+  assert.equal((await exports.GET!(normalRequest, context)).status, 401);
+  assert.equal((await exports.HEAD!(normalRequest, context)).status, 401);
   assert.equal(optionsSeen.length, 0, "unauthorized requests must not serve the PDF");
   allowed = true;
-  assert.equal((await exports.GET!(request, context)).status, 200);
-  assert.deepEqual(optionsSeen, [{ kind: "books", filename: "story.pdf", options: { revalidate: false, downloadName: "Nana dan Kerajaan di Atas Awan.pdf" } }]);
+  assert.equal((await exports.GET!(normalRequest, context)).status, 200);
+  assert.equal((await exports.HEAD!(normalRequest, context)).status, 200);
+  assert.deepEqual(optionsSeen, [
+    { kind: "books", filename: "story.pdf", options: { revalidate: false } },
+    { kind: "books", filename: "story.pdf", options: { revalidate: false } },
+  ]);
 });
 
 test("attachment response provides a safe UTF-8 PDF filename without changing range support", async () => {
