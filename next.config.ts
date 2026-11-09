@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   output: "standalone",
+  // Keep binary PDF downloads uncompressed so browsers retain Content-Length and byte ranges.
+  compress: false,
   turbopack: {
     resolveAlias: {
       "pdfjs-dist": { browser: "pdfjs-dist/legacy/build/pdf.mjs" },
